@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtuelle Umgebung
+.venv/
+
+# PyCharm
+.idea/
+
+# macOS
+.DS_Store
+
+# Logs
+logs/
+
+# Generierte Ausgabedateien
+data/output/
+
+# Jupyter
+.ipynb_checkpoints/
