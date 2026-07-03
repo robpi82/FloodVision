@@ -6,3 +6,4 @@ matplotlib>=3.8
 opencv-python>=4.9        # use opencv-python-headless on servers without GUI
 pandas>=2.1               # batch report (CSV) generation
 PyYAML>=6.0               # user-facing configuration (config.yaml)
+PySide6>=6.6              # desktop GUI (v0.6)

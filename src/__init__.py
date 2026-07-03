@@ -12,6 +12,7 @@ This package contains the application's core modules:
 * :mod:`src.change_detection` -- before/after mask comparison
 * :mod:`src.batch_processor` -- fault-tolerant pair batch orchestration
 * :mod:`src.report_generator` -- CSV report and batch summary
+* :mod:`src.gui`             -- PySide6 desktop application (presentation only)
 """
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"

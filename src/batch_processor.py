@@ -190,6 +190,8 @@ class BatchProcessor:
         before_dir: Path = config.BEFORE_DATA_DIR,
         after_dir: Path = config.AFTER_DATA_DIR,
         output_dir: Path = config.OUTPUT_DATA_DIR,
+        on_pair_done: Callable[[FloodComparisonResult, int, int], None] | None = None,
+        is_cancelled: Callable[[], bool] | None = None,
     ) -> None:
         """Initialise the batch processor.
 
@@ -200,19 +202,31 @@ class BatchProcessor:
             before_dir: Directory with pre-event images.
             after_dir: Directory with post-event images.
             output_dir: Root directory receiving one subdirectory per pair.
+            on_pair_done: Optional observer called after every pair with
+                ``(record, index, total)`` -- e.g. a GUI progress hook.
+                Exceptions raised by the observer are logged and never
+                abort the batch. ``None`` (default) preserves the exact
+                pre-v0.6 behaviour.
+            is_cancelled: Optional callable polled before each pair; when
+                it returns ``True`` the batch stops gracefully and returns
+                the records processed so far. ``None`` disables
+                cancellation (pre-v0.6 behaviour).
         """
         self._loader = loader
         self._detector = detector
         self._before_dir = before_dir
         self._after_dir = after_dir
         self._output_dir = output_dir
+        self._on_pair_done = on_pair_done
+        self._is_cancelled = is_cancelled
 
     def run(self) -> BatchResult:
         """Process all matching image pairs.
 
         Returns:
             A :class:`BatchResult` with one record per pair, in
-            deterministic filename order.
+            deterministic filename order. If cancellation was requested,
+            the result contains only the pairs processed up to that point.
 
         Raises:
             NoImagesFoundError: If either input directory is empty.
@@ -227,8 +241,17 @@ class BatchProcessor:
 
         records: list[FloodComparisonResult] = []
         for index, pair in enumerate(pairs, start=1):
+            if self._is_cancelled is not None and self._is_cancelled():
+                logger.warning(
+                    "Batch cancelled by user after %d of %d pair(s)",
+                    len(records),
+                    total,
+                )
+                break
             logger.info("[%d/%d] Processing pair %s", index, total, pair.name)
-            records.append(self._process_single(pair))
+            record = self._process_single(pair)
+            records.append(record)
+            self._notify_pair_done(record, index, total)
 
         result = BatchResult(records=tuple(records))
         logger.info(
@@ -237,6 +260,27 @@ class BatchProcessor:
             len(result.failed),
         )
         return result
+
+    def _notify_pair_done(
+        self, record: FloodComparisonResult, index: int, total: int
+    ) -> None:
+        """Invoke the optional observer, shielding the batch from it.
+
+        An observer (GUI update, metrics push) must never be able to kill
+        the processing loop -- its errors are logged with traceback and
+        swallowed, mirroring the per-pair failure boundary.
+
+        Args:
+            record: The record of the just-finished pair.
+            index: 1-based index of the pair within the batch.
+            total: Total number of pairs in the batch.
+        """
+        if self._on_pair_done is None:
+            return
+        try:
+            self._on_pair_done(record, index, total)
+        except Exception:  # noqa: BLE001 -- observer isolation boundary
+            logger.exception("on_pair_done observer raised; batch continues")
 
     def _process_single(self, pair: ImagePair) -> FloodComparisonResult:
         """Process one pair inside its own failure boundary.
