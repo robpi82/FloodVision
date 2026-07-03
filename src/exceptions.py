@@ -69,3 +69,13 @@ class NoImagePairsFoundError(FloodVisionError):
             f"A pair requires the identical filename in both directories."
         )
         super().__init__(message)
+
+
+class ConfigurationError(FloodVisionError):
+    """Raised when the YAML configuration is missing, unreadable or invalid.
+
+    Configuration problems are *user-fixable* domain errors (edit the
+    file, restart), not programming bugs -- hence they belong under
+    :class:`FloodVisionError` and carry messages that name the exact file,
+    key and expected value range.
+    """

@@ -5,3 +5,4 @@ Pillow>=10.0
 matplotlib>=3.8
 opencv-python>=4.9        # use opencv-python-headless on servers without GUI
 pandas>=2.1               # batch report (CSV) generation
+PyYAML>=6.0               # user-facing configuration (config.yaml)

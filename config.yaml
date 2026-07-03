@@ -1,0 +1,32 @@
+# =============================================================================
+# FloodVision configuration
+# =============================================================================
+# This file contains all *user-facing* settings. Code-level constants
+# (file naming, log format, kernel sizes) live in src/config.py.
+#
+# Every value below is validated on application start; a missing key or an
+# invalid value aborts the run with a precise error message.
+
+paths:
+  # Directories may be relative (resolved against the project root)
+  # or absolute.
+  before_dir: data/before
+  after_dir: data/after
+  output_dir: data/output
+
+logging:
+  # One of: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: INFO
+
+water_detection:
+  # OpenCV HSV ranges: H in [0, 179], S in [0, 255], V in [0, 255].
+  # The window below covers cyan to deep blue tones; the S/V minima reject
+  # gray haze (low saturation) and near-black shadows (low value).
+  # Tune per dataset -- turbid brown flood water needs different values.
+  hsv_lower: [85, 40, 40]
+  hsv_upper: [135, 255, 255]
+
+overlay:
+  # Opacity of the semi-transparent layers, 0.0 (invisible) .. 1.0 (opaque).
+  alpha: 0.45         # blue water overlay (single-image products)
+  change_alpha: 0.5   # red new-flood overlay (change detection)

@@ -14,4 +14,4 @@ This package contains the application's core modules:
 * :mod:`src.report_generator` -- CSV report and batch summary
 """
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"

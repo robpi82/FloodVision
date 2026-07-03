@@ -2,7 +2,7 @@
 
 This file contains *no business logic*. Its only job is to wire the
 application together (logging, directories) and to orchestrate the
-Version 0.4 change-detection workflow:
+change-detection workflow:
 
     1. Match before/after image pairs by filename
        (``data/before/`` vs. ``data/after/``); unmatched files are logged
@@ -25,7 +25,7 @@ from __future__ import annotations
 import logging
 import sys
 
-from src import config, report_generator, utils
+from src import __version__, config, report_generator, utils
 from src.batch_processor import BatchProcessor
 from src.exceptions import FloodVisionError
 from src.image_loader import ImageLoader
@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 def run() -> int:
-    """Execute the Version 0.4 change-detection workflow.
+    """Execute the change-detection workflow.
 
     Returns:
         Process exit code: ``0`` if every pair succeeded, ``1`` if the
@@ -51,7 +51,7 @@ def run() -> int:
     utils.ensure_directories(
         config.BEFORE_DATA_DIR, config.AFTER_DATA_DIR, config.OUTPUT_DATA_DIR
     )
-    logger.info("FloodVision v0.4 starting (change-detection batch)")
+    logger.info("FloodVision v%s starting (change-detection batch)", __version__)
 
     # Composition root: the only place where concrete classes are chosen.
     detector: WaterSegmentationStrategy = HSVWaterDetector()
