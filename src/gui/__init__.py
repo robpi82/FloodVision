@@ -11,5 +11,8 @@ Modules:
     * :mod:`src.gui.image_view`       -- tabbed, scaling image preview
     * :mod:`src.gui.statistics_panel` -- live per-pair statistics
     * :mod:`src.gui.settings_dialog`  -- settings editor dialog
+    * :mod:`src.gui.log_console`      -- colorised, exportable log console
+    * :mod:`src.gui.navigator`        -- navigation model over processed pairs
+    * :mod:`src.gui.summary_dialog`   -- end-of-batch summary dialog
     * :mod:`src.gui.main_window`      -- window composition and wiring
 """

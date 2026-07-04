@@ -1,11 +1,16 @@
-"""Right-hand statistics panel with live per-pair metrics.
+"""Statistics panel content: live batch counters plus current-pair metrics.
 
-Pure presentation: the panel formats and displays values from backend
-records, it computes nothing itself (the backend's ``BatchResult``
-properties own all statistics -- Single Source of Truth).
+The panel aggregates only what arrives as a *stream* (counts, cumulative
+pixels, wall-clock time) -- all end-of-batch statistics still come from
+the backend's :class:`~src.batch_processor.BatchResult` properties
+(Single Source of Truth). Hosted inside a ``QDockWidget`` by the main
+window, so users can float or re-dock it like in any professional
+desktop tool.
 """
 
 from __future__ import annotations
+
+import time
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFormLayout, QGroupBox, QLabel, QVBoxLayout, QWidget
@@ -14,57 +19,89 @@ from src.batch_processor import BatchResult, FloodComparisonResult, ProcessingSt
 
 _PLACEHOLDER = "\u2014"  # em dash
 
+_BATCH_ROWS: tuple[tuple[str, str], ...] = (
+    ("processed", "Processed pairs"),
+    ("successful", "Successful"),
+    ("failed", "Failed"),
+    ("pixels", "Flooded pixels"),
+    ("total_time", "Total runtime"),
+    ("avg_time", "Average runtime"),
+    ("progress", "Progress"),
+)
+
+_PAIR_ROWS: tuple[tuple[str, str], ...] = (
+    ("current", "Current image"),
+    ("status", "Status"),
+    ("before", "Water before"),
+    ("after", "Water after"),
+    ("increase", "Flood increase"),
+    ("time", "Processing time"),
+)
+
 
 class StatisticsPanel(QWidget):
-    """Displays batch progress and the metrics of the current pair."""
+    """Displays live batch counters and the metrics of one pair."""
 
     def __init__(self, parent: QWidget | None = None) -> None:
-        """Build the label grid.
+        """Build both label groups.
 
         Args:
             parent: Optional Qt parent.
         """
         super().__init__(parent)
         self._values: dict[str, QLabel] = {}
+        self._start_time: float | None = None
+        self._processed = 0
+        self._successful = 0
+        self._failed = 0
+        self._flooded_pixels = 0
 
+        layout = QVBoxLayout(self)
+        layout.addWidget(self._make_group("Batch", _BATCH_ROWS))
+        layout.addWidget(self._make_group("Current pair", _PAIR_ROWS))
+        layout.addStretch(1)
+
+    def _make_group(self, title: str, rows: tuple[tuple[str, str], ...]) -> QGroupBox:
+        """Create one labelled form group and register its value labels.
+
+        Args:
+            title: Group box title.
+            rows: ``(key, caption)`` pairs for the form rows.
+
+        Returns:
+            The assembled group box.
+        """
         form = QFormLayout()
         form.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
-        for key, caption in (
-            ("pairs", "Image pairs"),
-            ("current", "Current image"),
-            ("progress", "Progress"),
-            ("status", "Status"),
-            ("before", "Water before"),
-            ("after", "Water after"),
-            ("increase", "Flood increase"),
-            ("time", "Processing time"),
-        ):
+        for key, caption in rows:
             value = QLabel(_PLACEHOLDER)
             value.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
             self._values[key] = value
             form.addRow(f"{caption}:", value)
-
-        box = QGroupBox("Statistics")
+        box = QGroupBox(title)
         box.setLayout(form)
-        layout = QVBoxLayout(self)
-        layout.addWidget(box)
-        layout.addStretch(1)
+        return box
 
-    def reset(self, total_pairs: int | None = None) -> None:
-        """Clear all values, optionally pre-filling the pair count.
+    # ------------------------------------------------------------------
+    # Lifecycle
+    # ------------------------------------------------------------------
+    def reset(self) -> None:
+        """Clear everything and start the wall-clock timer.
 
-        Args:
-            total_pairs: Known number of pairs, or ``None`` before start.
+        ``time.monotonic`` is used because runtime measurement must never
+        jump backwards with system clock adjustments.
         """
         for label in self._values.values():
             label.setText(_PLACEHOLDER)
-        if total_pairs is not None:
-            self._values["pairs"].setText(str(total_pairs))
+            label.setStyleSheet("")
+        self._start_time = time.monotonic()
+        self._processed = 0
+        self._successful = 0
+        self._failed = 0
+        self._flooded_pixels = 0
 
-    def show_record(
-        self, record: FloodComparisonResult, index: int, total: int
-    ) -> None:
-        """Display the metrics of one finished pair.
+    def on_pair(self, record: FloodComparisonResult, index: int, total: int) -> None:
+        """Update counters and current-pair rows for one finished pair.
 
         Args:
             record: The pair's result record.
@@ -72,9 +109,30 @@ class StatisticsPanel(QWidget):
             total: Total number of pairs.
         """
         ok = record.status is ProcessingStatus.SUCCESS
-        self._values["pairs"].setText(str(total))
+        self._processed += 1
+        self._successful += 1 if ok else 0
+        self._failed += 0 if ok else 1
+        self._flooded_pixels += record.new_flood_pixels or 0
+
+        elapsed = self.elapsed_seconds
+        self._values["processed"].setText(f"{self._processed} / {total}")
+        self._values["successful"].setText(str(self._successful))
+        self._values["failed"].setText(str(self._failed))
+        self._values["pixels"].setText(f"{self._flooded_pixels:,}")
+        self._values["total_time"].setText(f"{elapsed:.1f} s")
+        self._values["avg_time"].setText(f"{elapsed / self._processed:.2f} s")
+        self._values["progress"].setText(f"{100 * index // total} %")
+
+        self.show_pair_details(record)
+
+    def show_pair_details(self, record: FloodComparisonResult) -> None:
+        """Fill the current-pair group (also used while navigating).
+
+        Args:
+            record: The record to display.
+        """
+        ok = record.status is ProcessingStatus.SUCCESS
         self._values["current"].setText(record.filename)
-        self._values["progress"].setText(f"{index} / {total}")
         self._values["status"].setText("OK" if ok else "FAILED")
         self._values["status"].setStyleSheet(
             "color: #4caf50;" if ok else "color: #e05555; font-weight: bold;"
@@ -85,11 +143,12 @@ class StatisticsPanel(QWidget):
         self._values["time"].setText(f"{record.processing_time_seconds:.2f} s")
 
     def show_batch_result(self, result: BatchResult) -> None:
-        """Switch the panel to end-of-batch averages.
+        """Switch the pair group to end-of-batch averages.
 
         Args:
             result: The finished batch result.
         """
+        self._values["progress"].setText("done")
         self._values["current"].setText("(batch finished)")
         self._values["status"].setStyleSheet("")
         self._values["status"].setText(
@@ -104,6 +163,13 @@ class StatisticsPanel(QWidget):
         self._values["increase"].setText(
             _points(result.average_increase_percent) + " (avg)"
         )
+
+    @property
+    def elapsed_seconds(self) -> float:
+        """Wall-clock seconds since :meth:`reset` (0.0 before first use)."""
+        if self._start_time is None:
+            return 0.0
+        return time.monotonic() - self._start_time
 
 
 def _percent(value: float | None) -> str:
