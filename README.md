@@ -1,26 +1,35 @@
 # 🌊 FloodVision
 
-**Professional Flood Detection & Flood Change Detection using Python, OpenCV and Computer Vision**
+Professional Flood Detection & Flood Change Detection using Python, OpenCV and a modern Desktop GUI.
 
-FloodVision is a computer vision project that detects water surfaces in aerial or satellite imagery and compares images captured at different times to identify newly flooded areas.
-
-The project is being developed step by step as a professional portfolio application and will eventually support GIS data, satellite imagery, AI-based segmentation, and interactive visualization.
+FloodVision is a portfolio project developed to automatically detect newly flooded areas by comparing before and after aerial or satellite images. The application provides a graphical desktop interface, automatic image processing and detailed analysis reports.
 
 ---
 
 # Features
 
-## Current Features (Version 0.5)
+## Flood Detection
 
-- Water detection using HSV color segmentation
-- Flood change detection (Before / After comparison)
-- Batch processing of multiple image pairs
-- Automatic CSV report generation
+- Automatic water detection
+- Before / After comparison
+- New flood area detection
 - Overlay visualization
-- Automatic mask generation
+- Flood mask generation
+- Batch processing
+- CSV report export
+- Automatic statistics
 - Robust error handling
-- Detailed logging
-- Modular object-oriented architecture
+
+## Desktop GUI
+
+- Modern PySide6 interface
+- Image preview
+- Processing progress
+- Statistics panel
+- Summary dialog
+- Log console
+- Folder navigator
+- Settings dialog
 
 ---
 
@@ -31,17 +40,18 @@ The project is being developed step by step as a professional portfolio applicat
 - NumPy
 - Pillow
 - Matplotlib
+- PySide6
+- PyYAML
 
 ---
 
 # Installation
 
 ```bash
-git clone https://github.com/robpi82/FloodVision.git
+git clone git@github.com:robpi82/FloodVision.git
 cd FloodVision
 
 python3 -m venv .venv
-
 source .venv/bin/activate
 
 pip install -r requirements.txt
@@ -51,8 +61,16 @@ pip install -r requirements.txt
 
 # Run
 
+Console version
+
 ```bash
 python main.py
+```
+
+Desktop GUI
+
+```bash
+python gui_main.py
 ```
 
 ---
@@ -61,131 +79,93 @@ python main.py
 
 ```text
 FloodVision/
-│
+
 ├── data/
 │   ├── before/
 │   ├── after/
-│   └── output/
+│   ├── output/
+│   └── raw/
 │
 ├── src/
-│   ├── batch_processor.py
+│   ├── gui/
+│   ├── water_detection.py
 │   ├── change_detection.py
 │   ├── image_loader.py
 │   ├── mask_generator.py
 │   ├── report_generator.py
 │   ├── visualization.py
-│   ├── water_detection.py
+│   ├── batch_processor.py
 │   ├── config.py
-│   ├── exceptions.py
-│   └── utils.py
+│   └── exceptions.py
 │
-├── logs/
+├── assets/
+├── gui_main.py
 ├── main.py
+├── config.yaml
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-# Example Workflow
-
-1. Place "before" images inside:
-
-```text
-data/before/
-```
-
-2. Place matching "after" images inside:
-
-```text
-data/after/
-```
-
-3. Run:
-
-```bash
-python main.py
-```
-
-4. FloodVision automatically:
-
-- detects water in each image
-- compares before and after images
-- calculates newly flooded areas
-- creates masks
-- creates overlays
-- exports comparison images
-- generates a CSV report
-
-Results are stored in:
-
-```text
-data/output/
-```
-
----
-
 # Current Version
 
-## Version 0.5
+## Version 0.6.1
 
 ### Implemented
 
 - Water detection
 - Flood change detection
 - Batch processing
-- Automatic report generation
 - CSV export
 - Overlay visualization
-- Image pairing
 - Automatic mask generation
-- Robust error handling
-- Logging
-- Modular architecture
-
-### Planned (Roadmap)
-
-### Version 0.6
-- Modern desktop GUI (PySide6)
-- Drag & Drop support
-- Progress bar
-- Image preview
+- Desktop GUI
+- Image viewer
+- Statistics panel
+- Summary dialog
+- Log console
+- Navigation panel
 - Settings dialog
 
-### Version 0.7
+---
+
+# Roadmap
+
+## Version 0.7
+
 - GeoTIFF support
-- Sentinel-2 satellite imagery
-- Landsat support
+- Sentinel-2 imagery
+- Landsat imagery
 - Raster processing
 
-### Version 0.8
-- AI flood segmentation using U-Net
-- Deep learning inference
+## Version 0.8
+
+- AI flood segmentation
+- Deep Learning
 - Model evaluation
 
-### Version 0.9
-- Interactive map visualization
-- GIS export
-- Shapefile export
-- GeoJSON export
+## Version 0.9
 
-### Version 1.0
-- Professional desktop application
-- Advanced reporting
-- PDF export
-- Excel export
+- Interactive map
+- GeoJSON export
+- Shapefile export
+- GIS integration
+
+## Version 1.0
+
+- Professional FloodVision release
 - Complete documentation
-- Unit tests
-- Portfolio-ready release
+- Example datasets
+- Installer for Windows and macOS
 
 ---
 
 # Author
 
-**Robert Piotrowicz**
+Robert Piotrowicz
 
 GitHub:
-
 https://github.com/robpi82
 
 ---
@@ -193,3 +173,5 @@ https://github.com/robpi82
 # License
 
 Educational and portfolio project.
+
+Developed for learning Python, Computer Vision, GIS and Remote Sensing.
