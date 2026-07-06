@@ -1,10 +1,12 @@
+
+<p align="center">
+  <img src="docs/screenshots/floodvision_banner.png" alt="FloodVision Banner" width="100%">
+</p>
+
+
+
 # 🌊 FloodVision
 
-![Python](https://img.shields.io/badge/Python-3.12-blue)
-![OpenCV](https://img.shields.io/badge/OpenCV-4.x-green)
-![PySide6](https://img.shields.io/badge/PySide6-6.x-darkgreen)
-![Version](https://img.shields.io/badge/version-0.7.0-orange)
-![License](https://img.shields.io/badge/license-MIT-blue)
 ![Version](https://img.shields.io/badge/version-v0.7.0-orange)
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
