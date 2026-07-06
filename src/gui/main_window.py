@@ -184,20 +184,22 @@ class MainWindow(QMainWindow):
         self._nav_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._nav_label.setMinimumWidth(220)
 
-        zoom_out = QPushButton("\u2212")
-        zoom_out.setToolTip("Zoom out (Ctrl+-)")
+        zoom_out = QPushButton("Zoom Out")
+        zoom_out.setToolTip("Zoom out (Ctrl+- or mouse wheel)")
         zoom_out.clicked.connect(self._image_view.zoom_out)
-        zoom_in = QPushButton("+")
-        zoom_in.setToolTip("Zoom in (Ctrl++)")
+        zoom_in = QPushButton("Zoom In")
+        zoom_in.setToolTip("Zoom in (Ctrl++ or mouse wheel)")
         zoom_in.clicked.connect(self._image_view.zoom_in)
-        fit = QPushButton("Fit")
-        fit.setToolTip("Fit image to window")
+        fit = QPushButton("Fit Image")
+        fit.setToolTip("Fit image to window (Ctrl+0 or double click)")
         fit.clicked.connect(self._image_view.fit_to_window)
-        reset = QPushButton("1:1")
-        reset.setToolTip("Reset zoom to native resolution")
-        reset.clicked.connect(self._image_view.reset_zoom)
-        for button in (zoom_out, zoom_in, fit, reset):
-            button.setFixedWidth(48)
+        actual = QPushButton("Actual Size")
+        actual.setToolTip("Show at 100 % (native resolution)")
+        actual.clicked.connect(self._image_view.reset_zoom)
+
+        self._zoom_label = QLabel("Zoom: fit")
+        self._zoom_label.setObjectName("appSubtitle")
+        self._image_view.zoom_changed.connect(self._on_zoom_changed)
 
         row = QHBoxLayout()
         row.addWidget(self._prev_button)
@@ -207,7 +209,8 @@ class MainWindow(QMainWindow):
         row.addWidget(zoom_out)
         row.addWidget(zoom_in)
         row.addWidget(fit)
-        row.addWidget(reset)
+        row.addWidget(actual)
+        row.addWidget(self._zoom_label)
         bar = QFrame()
         bar.setLayout(row)
         return bar
@@ -595,6 +598,17 @@ class MainWindow(QMainWindow):
         else:
             while QGuiApplication.overrideCursor() is not None:
                 QGuiApplication.restoreOverrideCursor()
+
+    def _on_zoom_changed(self, scale: float, fit_mode: bool) -> None:
+        """Update the zoom indicator in the view toolbar.
+
+        Args:
+            scale: Current magnification (1.0 = 100 %).
+            fit_mode: Whether the views follow fit-to-window.
+        """
+        self._zoom_label.setText(
+            "Zoom: fit" if fit_mode else f"Zoom: {scale * 100.0:.0f} %"
+        )
 
     def closeEvent(self, event) -> None:  # noqa: N802 (Qt API)
         """Persist settings and stop a running worker on window close.

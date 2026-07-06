@@ -1,51 +1,62 @@
-# 🌊 FloodVision
+# FloodVision
 
-Professional Flood Detection & Flood Change Detection using Python, OpenCV and a modern Desktop GUI.
+Professional desktop application for flood detection using computer vision and image processing.
 
-FloodVision is a portfolio project developed to automatically detect newly flooded areas by comparing before and after aerial or satellite images. The application provides a graphical desktop interface, automatic image processing and detailed analysis reports.
+FloodVision compares two images of the same location ("Before" and "After") and automatically detects newly flooded areas. The application generates comparison images, flood masks, overlays, statistics and CSV reports.
 
 ---
 
-# Features
+## Features
 
-## Flood Detection
+### Image Processing
 
 - Automatic water detection
-- Before / After comparison
-- New flood area detection
+- Flood change detection
+- Before/After image comparison
 - Overlay visualization
-- Flood mask generation
+- New flood mask generation
 - Batch processing
-- CSV report export
-- Automatic statistics
+- Automatic image pairing
 - Robust error handling
 
-## Desktop GUI
+### Desktop GUI
 
-- Modern PySide6 interface
-- Image preview
-- Processing progress
+- Modern PySide6 desktop application
+- Dark theme
+- Before / After / Overlay / Flood Mask preview
+- Zoom In
+- Zoom Out
+- Fit Image
+- Actual Size (100%)
+- Image navigation
+- Progress bar
+- Live log console
 - Statistics panel
-- Summary dialog
-- Log console
-- Folder navigator
-- Settings dialog
+- Folder selection
+
+### Reporting
+
+- CSV report generation
+- Comparison images
+- Water coverage statistics
+- Flood increase calculation
+- Batch summary
 
 ---
 
-# Technologies
+## Technologies
 
 - Python 3.12
+- PySide6
 - OpenCV
 - NumPy
 - Pillow
 - Matplotlib
-- PySide6
 - PyYAML
 
 ---
 
-# Installation
+## Installation
 
 ```bash
 git clone git@github.com:robpi82/FloodVision.git
@@ -59,13 +70,7 @@ pip install -r requirements.txt
 
 ---
 
-# Run
-
-Console version
-
-```bash
-python main.py
-```
+## Run
 
 Desktop GUI
 
@@ -73,32 +78,40 @@ Desktop GUI
 python gui_main.py
 ```
 
+Command Line
+
+```bash
+python main.py
+```
+
 ---
 
-# Folder Structure
+## Folder Structure
 
 ```text
-FloodVision/
-
+FloodVision
+│
+├── assets/
 ├── data/
 │   ├── before/
 │   ├── after/
 │   ├── output/
+│   ├── processed/
 │   └── raw/
 │
 ├── src/
 │   ├── gui/
-│   ├── water_detection.py
+│   ├── batch_processor.py
 │   ├── change_detection.py
+│   ├── config.py
+│   ├── exceptions.py
 │   ├── image_loader.py
 │   ├── mask_generator.py
 │   ├── report_generator.py
+│   ├── utils.py
 │   ├── visualization.py
-│   ├── batch_processor.py
-│   ├── config.py
-│   └── exceptions.py
+│   └── water_detection.py
 │
-├── assets/
 ├── gui_main.py
 ├── main.py
 ├── config.yaml
@@ -108,70 +121,86 @@ FloodVision/
 
 ---
 
-# Current Version
+## Screenshots
 
-## Version 0.6.1
+### Main Window
 
-### Implemented
+*(Insert screenshot here)*
 
-- Water detection
-- Flood change detection
-- Batch processing
-- CSV export
-- Overlay visualization
-- Automatic mask generation
-- Desktop GUI
-- Image viewer
-- Statistics panel
-- Summary dialog
-- Log console
-- Navigation panel
-- Settings dialog
+### Analysis Result
+
+*(Insert comparison screenshot here)*
+
+### Overlay
+
+*(Insert overlay screenshot here)*
 
 ---
 
-# Roadmap
+## Current Version
 
-## Version 0.7
+### Version 0.7.0
+
+Implemented
+
+- Professional desktop GUI
+- Image navigation
+- Zoom controls
+- Statistics panel
+- Live logging
+- CSV export
+- Batch processing
+- Overlay visualization
+- Automatic report generation
+- Automatic image pairing
+- Robust error handling
+
+---
+
+## Roadmap
+
+### Version 0.7.1
+
+- macOS image panning improvements
+- Drag & Drop support
+- Better image navigation
+- GUI usability improvements
+
+### Version 0.8
 
 - GeoTIFF support
+- Rasterio integration
+- Coordinate systems
+- GIS workflows
+
+### Version 0.9
+
 - Sentinel-2 imagery
 - Landsat imagery
 - Raster processing
+- GIS export
 
-## Version 0.8
+### Version 1.0
 
 - AI flood segmentation
-- Deep Learning
-- Model evaluation
-
-## Version 0.9
-
-- Interactive map
-- GeoJSON export
-- Shapefile export
-- GIS integration
-
-## Version 1.0
-
-- Professional FloodVision release
-- Complete documentation
-- Example datasets
-- Installer for Windows and macOS
+- Deep Learning models
+- U-Net integration
+- PyTorch support
 
 ---
 
-# Author
+## Author
 
 Robert Piotrowicz
 
-GitHub:
+GitHub
+
 https://github.com/robpi82
 
 ---
 
-# License
+## License
+
+MIT License
 
 Educational and portfolio project.
-
-Developed for learning Python, Computer Vision, GIS and Remote Sensing.
