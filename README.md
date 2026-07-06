@@ -1,8 +1,20 @@
-# FloodVision
+# 🌊 FloodVision
+
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![OpenCV](https://img.shields.io/badge/OpenCV-4.x-green)
+![PySide6](https://img.shields.io/badge/PySide6-6.x-darkgreen)
+![Version](https://img.shields.io/badge/version-0.7.0-orange)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Version](https://img.shields.io/badge/version-v0.7.0-orange)
+![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
+![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
+![OpenCV](https://img.shields.io/badge/OpenCV-4.x-red?logo=opencv)
+![License](https://img.shields.io/badge/license-MIT-success)
+![Status](https://img.shields.io/badge/status-active-brightgreen)
 
 Professional desktop application for flood detection using computer vision and image processing.
 
-FloodVision compares two images of the same location ("Before" and "After") and automatically detects newly flooded areas. The application generates comparison images, flood masks, overlays, statistics and CSV reports.
+FloodVision compares two images of the same location ("Before" and "After") and automatically detects newly flooded areas.
 
 ---
 
@@ -125,16 +137,19 @@ FloodVision
 
 ### Main Window
 
-*(Insert screenshot here)*
+![FloodVision Main Window](docs/screenshots/main_window_dark.png)
 
 ### Analysis Result
 
-*(Insert comparison screenshot here)*
+![Comparison](docs/screenshots/comparison.png)
 
 ### Overlay
 
-*(Insert overlay screenshot here)*
+![Overlay](docs/screenshots/overlay.png)
 
+### Statistics
+
+![Statistics](docs/screenshots/statistics.png)
 ---
 
 ## Current Version
