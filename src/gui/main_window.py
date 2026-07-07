@@ -16,7 +16,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QGuiApplication, QKeySequence
+from PySide6.QtGui import QAction, QGuiApplication, QKeyEvent, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
     QDockWidget,
@@ -36,6 +36,7 @@ from PySide6.QtWidgets import (
 from src.batch_processor import BatchResult, FloodComparisonResult, ProcessingStatus
 from src.gui import theme
 from src.gui.app_settings import AppSettings, save_settings
+from src.gui.folder_field import FolderDropLineEdit
 from src.gui.image_view import ImageView
 from src.gui.log_console import LogConsole
 from src.gui.log_handler import SUCCESS, QtLogHandler
@@ -115,17 +116,37 @@ class MainWindow(QMainWindow):
         subtitle.setObjectName("appSubtitle")
         subtitle.setWordWrap(True)
 
-        self._before_edit = QLineEdit(self._settings.before_dir)
-        self._after_edit = QLineEdit(self._settings.after_dir)
-        self._output_edit = QLineEdit(self._settings.output_dir)
+        self._before_edit = FolderDropLineEdit(self._settings.before_dir)
+        self._after_edit = FolderDropLineEdit(self._settings.after_dir)
+        self._output_edit = FolderDropLineEdit(self._settings.output_dir)
+        for caption, edit in (
+            ("BEFORE", self._before_edit),
+            ("AFTER", self._after_edit),
+            ("OUTPUT", self._output_edit),
+        ):
+            edit.setToolTip(
+                f"{caption} folder -- type a path, use the ... button, "
+                f"or drop a folder here from your file manager"
+            )
+            edit.folder_dropped.connect(
+                lambda path, c=caption: self._on_folder_dropped(c, path)
+            )
+            edit.drop_rejected.connect(
+                lambda: self.statusBar().showMessage(
+                    "Only a single folder can be dropped here.", 4000
+                )
+            )
 
         self._start_button = QPushButton("Start Analysis")
         self._start_button.setObjectName("primaryButton")
+        self._start_button.setToolTip("Run the analysis on all image pairs (Ctrl+R)")
         self._start_button.clicked.connect(self._on_start)
         self._cancel_button = QPushButton("Cancel")
         self._cancel_button.setEnabled(False)
+        self._cancel_button.setToolTip("Stop after the current pair finishes")
         self._cancel_button.clicked.connect(self._on_cancel)
         self._settings_button = QPushButton("Settings")
+        self._settings_button.setToolTip("HSV thresholds, output folder, theme")
         self._settings_button.clicked.connect(self._on_settings)
 
         layout = QVBoxLayout()
@@ -159,6 +180,7 @@ class MainWindow(QMainWindow):
             The assembled layout.
         """
         browse = QPushButton("...")
+        browse.setToolTip(f"Select {caption} via dialog")
         browse.setFixedWidth(36)
         browse.clicked.connect(lambda: self._browse_into(edit, caption))
         row = QHBoxLayout()
@@ -177,8 +199,10 @@ class MainWindow(QMainWindow):
             The toolbar widget.
         """
         self._prev_button = QPushButton("\u25c0 Previous")
+        self._prev_button.setToolTip("Previous image pair (\u2190 or Alt+\u2190)")
         self._prev_button.clicked.connect(self._on_previous)
         self._next_button = QPushButton("Next \u25b6")
+        self._next_button.setToolTip("Next image pair (\u2192 or Alt+\u2192)")
         self._next_button.clicked.connect(self._on_next)
         self._nav_label = QLabel("no results yet")
         self._nav_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -377,6 +401,7 @@ class MainWindow(QMainWindow):
         self._worker.batch_finished.connect(self._on_batch_finished)
         self._worker.batch_failed.connect(self._on_batch_failed)
         self._worker.start()
+        self.statusBar().showMessage("Analysis running...")
 
     def _on_cancel(self) -> None:
         """Forward a cancellation request to the running worker."""
@@ -492,8 +517,12 @@ class MainWindow(QMainWindow):
             cancelled=cancelled,
             parent=self,
         ).exec()
-        self._current_file.setText(
-            "Batch cancelled." if cancelled else "Batch finished."
+        status = "Batch cancelled." if cancelled else "Batch finished."
+        self._current_file.setText(status)
+        self.statusBar().showMessage(
+            f"{status}  {len(result.successful)} successful, "
+            f"{len(result.failed)} failed -- use \u2190/\u2192 to browse results.",
+            8000,
         )
 
     def _on_batch_failed(self, title: str, message: str) -> None:
@@ -506,6 +535,7 @@ class MainWindow(QMainWindow):
         self._set_running(False)
         QMessageBox.critical(self, title, message)
         self._current_file.setText("Failed: see log.")
+        self.statusBar().showMessage("Analysis could not run -- see log panel.", 8000)
 
     # ------------------------------------------------------------------
     # Helpers
@@ -540,7 +570,7 @@ class MainWindow(QMainWindow):
             self._nav_label.setText("no results yet")
         else:
             self._nav_label.setText(
-                f"{current.record.filename}  ({position} / {total})"
+                f"{current.record.filename}   \u00b7   Image {position} of {total}"
             )
         self._prev_button.setEnabled(self._navigator.has_previous)
         self._next_button.setEnabled(self._navigator.has_next)
@@ -609,6 +639,37 @@ class MainWindow(QMainWindow):
         self._zoom_label.setText(
             "Zoom: fit" if fit_mode else f"Zoom: {scale * 100.0:.0f} %"
         )
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:  # noqa: N802 (Qt API)
+        """Navigate pairs with the plain arrow keys.
+
+        Reaches this handler only when no child consumed the key: line
+        edits keep their cursor movement, and the image views explicitly
+        ignore Left/Right so navigation works while they have focus.
+
+        Args:
+            event: Qt key event.
+        """
+        if event.key() == Qt.Key.Key_Left:
+            self._on_previous()
+            event.accept()
+            return
+        if event.key() == Qt.Key.Key_Right:
+            self._on_next()
+            event.accept()
+            return
+        super().keyPressEvent(event)
+
+    def _on_folder_dropped(self, caption: str, path: str) -> None:
+        """Persist a folder set via drag & drop and confirm in the UI.
+
+        Args:
+            caption: Which field received the drop (BEFORE/AFTER/OUTPUT).
+            path: The dropped directory path.
+        """
+        self._settings = self._settings_from_sidebar()
+        save_settings(self._settings)
+        self.statusBar().showMessage(f"{caption} folder set: {path}", 4000)
 
     def closeEvent(self, event) -> None:  # noqa: N802 (Qt API)
         """Persist settings and stop a running worker on window close.

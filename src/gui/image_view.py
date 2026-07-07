@@ -1,17 +1,20 @@
 """Tabbed image preview with professional zoom, pan and linked views.
 
-v0.7 upgrades the viewer to full image-tool behaviour:
+v0.7.1 adds device-aware input handling for macOS:
 
-* plain mouse-wheel zoom, anchored under the cursor,
-* left-drag panning (``ScrollHandDrag``),
-* double click = Fit to Window,
-* **linked views**: zooming or panning one tab mirrors the exact
-  transform and scroll position onto the other three, so switching
-  Before/After compares the identical image region -- the core visual
-  workflow of change detection,
-* adaptive pixmap filtering: smooth interpolation while zoomed out,
-  crisp nearest-neighbour pixels beyond 200 % so masks stay inspectable
-  and rendering stays fast on large images.
+* **Trackpad / Magic Mouse two-finger swipes pan** the image. These
+  devices deliver wheel events with pixel deltas and scroll phases;
+  treating them as zoom (v0.7 behaviour) made every swipe jump the
+  magnification. A classic mouse wheel (angle delta only, no phase)
+  still zooms, and Ctrl+wheel forces zoom on any device.
+* **Pinch-to-zoom** on trackpads via Qt's native zoom gesture.
+* **Smart panning**: left-drag panning (with open/closed hand cursor)
+  is only armed when the image actually overflows the viewport --
+  or while **Space** is held as the explicit pan modifier.
+
+Everything else is unchanged from v0.7: plain-wheel zoom anchored under
+the cursor, double click = Fit to Window, linked views across all four
+tabs, adaptive smooth/crisp pixmap filtering.
 """
 
 from __future__ import annotations
@@ -19,8 +22,15 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Final
 
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QMouseEvent, QPainter, QPixmap, QResizeEvent, QWheelEvent
+from PySide6.QtCore import QEvent, Qt, Signal
+from PySide6.QtGui import (
+    QKeyEvent,
+    QMouseEvent,
+    QPainter,
+    QPixmap,
+    QResizeEvent,
+    QWheelEvent,
+)
 from PySide6.QtWidgets import (
     QGraphicsPixmapItem,
     QGraphicsScene,
@@ -47,7 +57,7 @@ class ZoomableImageView(QGraphicsView):
 
     Signals:
         view_transformed: Emitted after a **user interaction** changed
-            this view (wheel zoom, double-click fit, drag pan). The
+            this view (wheel/pinch zoom, double-click fit, panning). The
             programmatic API (:meth:`zoom_in` etc.) intentionally does
             not emit -- the owning :class:`ImageView` broadcasts those
             itself, which keeps the sync logic loop-free.
@@ -67,17 +77,20 @@ class ZoomableImageView(QGraphicsView):
         self._scene = QGraphicsScene(self)
         self._item: QGraphicsPixmapItem | None = None
         self._fit_mode = True
+        self._space_pan = False
 
         self.setScene(self._scene)
         self.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
         self.setMinimumSize(240, 180)
+        # Space-to-pan and repurposed arrow keys need keyboard focus.
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         # Drag panning moves the scrollbars; forwarding their changes lets
         # the owner mirror the pan onto the linked sibling views.
         self.horizontalScrollBar().valueChanged.connect(self._emit_transformed)
         self.verticalScrollBar().valueChanged.connect(self._emit_transformed)
         self._show_placeholder()
+        self._update_pan_mode()
 
     # ------------------------------------------------------------------
     # Content
@@ -102,12 +115,13 @@ class ZoomableImageView(QGraphicsView):
         if self._fit_mode:
             self.fit_to_window()
         else:
-            self._update_pixmap_mode()
+            self._after_transform_changed()
 
     def clear_image(self) -> None:
         """Remove the current image and show the placeholder text."""
         self._item = None
         self._show_placeholder()
+        self._update_pan_mode()
 
     # ------------------------------------------------------------------
     # Zoom API (programmatic -- does not emit view_transformed)
@@ -125,13 +139,13 @@ class ZoomableImageView(QGraphicsView):
         self._fit_mode = True
         if self._item is not None:
             self.fitInView(self._item, Qt.AspectRatioMode.KeepAspectRatio)
-            self._update_pixmap_mode()
+        self._after_transform_changed()
 
     def reset_zoom(self) -> None:
         """Show the image at its native 1:1 pixel scale (manual mode)."""
         self._fit_mode = False
         self.resetTransform()
-        self._update_pixmap_mode()
+        self._after_transform_changed()
 
     @property
     def current_scale(self) -> float:
@@ -156,13 +170,13 @@ class ZoomableImageView(QGraphicsView):
         self.setTransform(source.transform())
         self.horizontalScrollBar().setValue(source.horizontalScrollBar().value())
         self.verticalScrollBar().setValue(source.verticalScrollBar().value())
-        self._update_pixmap_mode()
+        self._after_transform_changed()
 
     # ------------------------------------------------------------------
     # Qt events (user interaction -- emits view_transformed)
     # ------------------------------------------------------------------
     def resizeEvent(self, event: QResizeEvent) -> None:  # noqa: N802 (Qt API)
-        """Re-fit on resize while in fit mode.
+        """Re-fit on resize while in fit mode; re-check pannability.
 
         Args:
             event: Qt resize event.
@@ -170,13 +184,17 @@ class ZoomableImageView(QGraphicsView):
         super().resizeEvent(event)
         if self._fit_mode:
             self.fit_to_window()
+        else:
+            self._update_pan_mode()
 
     def wheelEvent(self, event: QWheelEvent) -> None:  # noqa: N802 (Qt API)
-        """Zoom with the plain mouse wheel, anchored under the cursor.
+        """Device-aware wheel handling: gestures pan, wheels zoom.
 
-        Scrolling the canvas by wheel is pointless in an image viewer --
-        drag panning covers navigation -- so the wheel is dedicated to
-        zoom, matching the convention of GIS and image tools.
+        Trackpads and the Apple Magic Mouse report two-finger swipes as
+        wheel events carrying **pixel deltas** and a **scroll phase** --
+        for those, panning is the expected result. A classic mouse wheel
+        reports angle deltas only (no phase) and keeps zooming.
+        Ctrl+wheel forces zoom on any device.
 
         Args:
             event: Qt wheel event.
@@ -184,9 +202,83 @@ class ZoomableImageView(QGraphicsView):
         if self._item is None:
             event.ignore()
             return
-        self._apply_zoom(_ZOOM_STEP if event.angleDelta().y() > 0 else 1.0 / _ZOOM_STEP)
-        self.view_transformed.emit()
+        force_zoom = bool(event.modifiers() & Qt.KeyboardModifier.ControlModifier)
+        is_gesture = (
+            not event.pixelDelta().isNull()
+            or event.phase() != Qt.ScrollPhase.NoScrollPhase
+        )
+        if is_gesture and not force_zoom:
+            delta = event.pixelDelta()
+            if delta.isNull():  # phase-based device without pixel info
+                delta = event.angleDelta() / 4
+            self.horizontalScrollBar().setValue(
+                self.horizontalScrollBar().value() - delta.x()
+            )
+            self.verticalScrollBar().setValue(
+                self.verticalScrollBar().value() - delta.y()
+            )
+        else:
+            self._apply_zoom(
+                _ZOOM_STEP if event.angleDelta().y() > 0 else 1.0 / _ZOOM_STEP
+            )
+            self.view_transformed.emit()
         event.accept()
+
+    def event(self, event: QEvent) -> bool:  # noqa: N802 (Qt API)
+        """Handle macOS native pinch-to-zoom gestures.
+
+        Qt delivers trackpad pinches as ``ZoomNativeGesture`` events with
+        an incremental scale value; ``1 + value`` is the documented zoom
+        factor per event.
+
+        Args:
+            event: Any Qt event.
+
+        Returns:
+            ``True`` if the event was consumed here.
+        """
+        if (
+            event.type() == QEvent.Type.NativeGesture
+            and event.gestureType() == Qt.NativeGestureType.ZoomNativeGesture
+            and self._item is not None
+        ):
+            self._apply_zoom(1.0 + event.value())
+            self.view_transformed.emit()
+            return True
+        return super().event(event)
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:  # noqa: N802 (Qt API)
+        """Space arms panning; arrow keys are left to the main window.
+
+        Left/Right are repurposed for pair navigation, so they are
+        explicitly ignored here and propagate up instead of scrolling
+        the view (the default ``QGraphicsView`` behaviour).
+
+        Args:
+            event: Qt key event.
+        """
+        if event.key() == Qt.Key.Key_Space and not event.isAutoRepeat():
+            self._space_pan = True
+            self._update_pan_mode()
+            event.accept()
+            return
+        if event.key() in (Qt.Key.Key_Left, Qt.Key.Key_Right):
+            event.ignore()
+            return
+        super().keyPressEvent(event)
+
+    def keyReleaseEvent(self, event: QKeyEvent) -> None:  # noqa: N802 (Qt API)
+        """Releasing Space disarms the pan modifier.
+
+        Args:
+            event: Qt key event.
+        """
+        if event.key() == Qt.Key.Key_Space and not event.isAutoRepeat():
+            self._space_pan = False
+            self._update_pan_mode()
+            event.accept()
+            return
+        super().keyReleaseEvent(event)
 
     def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:  # noqa: N802
         """Double click resets the image to fit-to-window.
@@ -210,13 +302,18 @@ class ZoomableImageView(QGraphicsView):
         Args:
             factor: Multiplicative zoom factor.
         """
-        if self._item is None:
+        if self._item is None or factor <= 0.0:
             return
         self._fit_mode = False
         if not _MIN_SCALE <= self.current_scale * factor <= _MAX_SCALE:
             return
         self.scale(factor, factor)
+        self._after_transform_changed()
+
+    def _after_transform_changed(self) -> None:
+        """Refresh everything that depends on the current transform."""
         self._update_pixmap_mode()
+        self._update_pan_mode()
 
     def _update_pixmap_mode(self) -> None:
         """Pick smooth vs. crisp pixmap filtering for the current scale."""
@@ -229,8 +326,28 @@ class ZoomableImageView(QGraphicsView):
         )
         self._item.setTransformationMode(mode)
 
+    def _update_pan_mode(self) -> None:
+        """Arm or disarm drag panning depending on overflow and Space.
+
+        Panning (with Qt's open/closed hand cursors, managed by
+        ``ScrollHandDrag``) is only offered when the image is larger
+        than the viewport -- visible via movable scrollbars -- or while
+        Space is held. Otherwise the plain arrow cursor signals that
+        there is nothing to move.
+        """
+        overflows = (
+            self.horizontalScrollBar().maximum() > 0
+            or self.verticalScrollBar().maximum() > 0
+        )
+        pannable = self._item is not None and (overflows or self._space_pan)
+        if pannable:
+            self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+        else:
+            self.setDragMode(QGraphicsView.DragMode.NoDrag)
+            self.viewport().unsetCursor()
+
     def _emit_transformed(self) -> None:
-        """Forward scrollbar movement (drag pan) as a view change."""
+        """Forward scrollbar movement (panning) as a view change."""
         if self._item is not None:
             self.view_transformed.emit()
 

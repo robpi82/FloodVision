@@ -32,6 +32,9 @@ QPushButton {{
     border-radius: 6px;
     padding: 8px 12px;
 }}
+QPushButton:disabled {{
+    color: #6f6f6f;
+}}
 QLabel#appTitle {{ font-size: 20px; font-weight: bold; }}
 QLabel#appSubtitle {{ color: gray; }}
 QLabel#logoBadge {{
