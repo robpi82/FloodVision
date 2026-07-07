@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [0.8.0] - Unreleased
+
+### Added
+
+- Rasterio dependency
+- Initial foundation for GeoTIFF support
+
+---
+
+## [0.7.1] - 2026-07-07
+
+### Added
+
+- Drag & Drop support for folder selection
+- Reusable folder selection component
+
+### Improved
+
+- Improved image navigation
+- Improved macOS image panning
+- Improved GUI usability
+- Improved folder selection workflow
+- Improved image viewing experience
+
+### Changed
+
+- Refactored GUI components for better maintainability
+
+---
+
 ## [0.7.0] - 2026-07-06
 
 ### Added
