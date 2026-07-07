@@ -9,8 +9,24 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Rasterio dependency
-- Initial foundation for GeoTIFF support
+- Initial GeoTIFF support
+- GeoTIFF metadata loader
+- GeoTIFF file validation
+- CRS and EPSG extraction
+- Raster bounds extraction
+- Pixel resolution extraction
+- Raster band and data type information
+- NoData value extraction
+- Affine transform metadata extraction
+- Robust error handling for invalid and corrupted raster files
+- Initial automated test infrastructure using pytest
+- 13 automated tests for the GeoTIFF metadata loader
+- Separate development dependencies via `requirements-dev.txt`
 
+### Improved
+
+- Extended FloodVision with the foundation for GIS raster workflows
+- Improved project reliability through automated testing
 ---
 
 ## [0.7.1] - 2026-07-07
