@@ -1,13 +1,10 @@
-
 <p align="center">
   <img src="docs/screenshots/floodvision_banner.png" alt="FloodVision Banner" width="100%">
 </p>
 
-
-
 # 🌊 FloodVision
 
-![Version](https://img.shields.io/badge/version-v0.7.0-orange)
+![Version](https://img.shields.io/badge/version-v0.7.1-orange)
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-red?logo=opencv)
@@ -37,16 +34,20 @@ FloodVision compares two images of the same location ("Before" and "After") and 
 
 - Modern PySide6 desktop application
 - Dark theme
-- Before / After / Overlay / Flood Mask preview
+- Before / After / Overlay / New Flood Mask preview
+- Drag & Drop folder support
+- Folder path input
+- Folder browser integration
+- Previous / Next image navigation
 - Zoom In
 - Zoom Out
 - Fit Image
 - Actual Size (100%)
-- Image navigation
+- Improved image navigation
 - Progress bar
 - Live log console
 - Statistics panel
-- Folder selection
+- Batch processing summary
 
 ### Reporting
 
@@ -55,6 +56,7 @@ FloodVision compares two images of the same location ("Before" and "After") and 
 - Water coverage statistics
 - Flood increase calculation
 - Batch summary
+- Automatic output folder generation
 
 ---
 
@@ -86,13 +88,13 @@ pip install -r requirements.txt
 
 ## Run
 
-Desktop GUI
+### Desktop GUI
 
 ```bash
 python gui_main.py
 ```
 
-Command Line
+### Command Line
 
 ```bash
 python main.py
@@ -106,6 +108,7 @@ python main.py
 FloodVision
 │
 ├── assets/
+│
 ├── data/
 │   ├── before/
 │   ├── after/
@@ -113,8 +116,17 @@ FloodVision
 │   ├── processed/
 │   └── raw/
 │
+├── docs/
+│   └── screenshots/
+│
 ├── src/
 │   ├── gui/
+│   │   ├── app_settings.py
+│   │   ├── folder_field.py
+│   │   ├── image_view.py
+│   │   ├── main_window.py
+│   │   └── theme.py
+│   │
 │   ├── batch_processor.py
 │   ├── change_detection.py
 │   ├── config.py
@@ -130,6 +142,8 @@ FloodVision
 ├── main.py
 ├── config.yaml
 ├── requirements.txt
+├── CHANGELOG.md
+├── LICENSE
 └── README.md
 ```
 
@@ -153,38 +167,38 @@ FloodVision
 
 ## Current Version
 
-### Version 0.7.0
+### Version 0.7.1
 
-Implemented
+Implemented:
 
 - Professional desktop GUI
-- Image navigation
+- Drag & Drop folder support
+- Folder path input
+- Improved image navigation
+- Previous / Next controls
 - Zoom controls
+- Fit Image and Actual Size
 - Statistics panel
 - Live logging
+- Progress tracking
 - CSV export
 - Batch processing
 - Overlay visualization
 - Automatic report generation
 - Automatic image pairing
 - Robust error handling
+- Improved GUI usability
 
 ---
 
 ## Roadmap
 
-### Version 0.7.1
-
-- macOS image panning improvements
-- Drag & Drop support
-- Better image navigation
-- GUI usability improvements
-
 ### Version 0.8
 
 - GeoTIFF support
 - Rasterio integration
-- Coordinate systems
+- Coordinate reference systems
+- Geospatial metadata
 - GIS workflows
 
 ### Version 0.9
@@ -207,7 +221,7 @@ Implemented
 
 Robert Piotrowicz
 
-GitHub
+GitHub Profile:
 
 https://github.com/robpi82
 
