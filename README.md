@@ -137,21 +137,18 @@ FloodVision
 
 ## Screenshots
 
-### Main Window
+### Desktop Application
 
 ![FloodVision Main Window](docs/screenshots/main_window_dark.png)
 
-### Analysis Result
+### Flood Detection Analysis
 
-![Comparison](docs/screenshots/comparison.png)
+![FloodVision Comparison](docs/screenshots/comparison.png)
 
-### Overlay
+### Flood Overlay Visualization
 
-![Overlay](docs/screenshots/overlay.png)
+![FloodVision Overlay](docs/screenshots/overlay.png)
 
-### Statistics
-
-![Statistics](docs/screenshots/statistics.png)
 ---
 
 ## Current Version
