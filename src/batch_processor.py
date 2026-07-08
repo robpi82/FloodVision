@@ -32,6 +32,8 @@ from src import change_detection, config, mask_generator, visualization
 from src.change_detection import MaskComparison
 from src.geotiff_compatibility import GeoTiffCompatibilityValidator
 from src.geotiff_loader import GeoTiffLoader
+from src.geotiff_raster_loader import GeoTiffRasterLoader
+from src.geotiff_image_adapter import GeoTiffImageAdapter
 from src.image_loader import ImageLoader, ImagePair, find_image_pairs
 from src.water_detection import WaterDetectionResult, WaterSegmentationStrategy
 
@@ -196,6 +198,8 @@ class BatchProcessor:
         is_cancelled: Callable[[], bool] | None = None,
         geotiff_loader: GeoTiffLoader | None = None,
         geotiff_validator: GeoTiffCompatibilityValidator | None = None,
+        geotiff_raster_loader: GeoTiffRasterLoader | None = None,
+        geotiff_image_adapter: GeoTiffImageAdapter | None = None,
     ) -> None:
         """Initialise the batch processor.
 
@@ -225,6 +229,8 @@ class BatchProcessor:
         self._is_cancelled = is_cancelled
         self._geotiff_loader = geotiff_loader or GeoTiffLoader()
         self._geotiff_validator = geotiff_validator or GeoTiffCompatibilityValidator()
+        self._geotiff_raster_loader = geotiff_raster_loader or GeoTiffRasterLoader()
+        self._geotiff_image_adapter = geotiff_image_adapter or GeoTiffImageAdapter()
 
     def run(self) -> BatchResult:
         """Process all matching image pairs.
@@ -307,9 +313,20 @@ class BatchProcessor:
         """
         start = time.perf_counter()
         try:
-            self._validate_geotiff_pair(pair)
-            before = self._detector.detect(self._loader.load(pair.before_path))
-            after = self._detector.detect(self._loader.load(pair.after_path))
+            is_geotiff = self._validate_geotiff_pair(pair)
+            if is_geotiff:
+                before_image = self._geotiff_image_adapter.to_image(
+                    self._geotiff_raster_loader.load(pair.before_path)
+                )
+                after_image = self._geotiff_image_adapter.to_image(
+                    self._geotiff_raster_loader.load(pair.after_path)
+                )
+            else:
+                before_image = self._loader.load(pair.before_path)
+                after_image = self._loader.load(pair.after_path)
+
+            before = self._detector.detect(before_image)
+            after = self._detector.detect(after_image)
             comparison = change_detection.compare_masks(before.mask, after.mask)
             self._save_products(pair, before, after, comparison)
         except Exception as error:  # noqa: BLE001 -- intentional batch boundary
@@ -346,7 +363,7 @@ class BatchProcessor:
             processing_time_seconds=elapsed,
         )
 
-    def _validate_geotiff_pair(self, pair: ImagePair) -> None:
+    def _validate_geotiff_pair(self, pair: ImagePair) -> bool:
         """Reject mixed or spatially incompatible GeoTIFF pairs.
 
         Plain TIFF files remain part of the legacy image workflow. A pair in
@@ -362,7 +379,7 @@ class BatchProcessor:
                 "or both must use the legacy image workflow"
             )
         if not before_is_geotiff:
-            return
+            return False
 
         logger.info("Validating GeoTIFF compatibility for pair %s", pair.name)
         before_metadata = self._geotiff_loader.read_metadata(pair.before_path)
@@ -370,6 +387,7 @@ class BatchProcessor:
         result = self._geotiff_validator.validate(before_metadata, after_metadata)
         if not result.is_compatible:
             raise ValueError(f"Incompatible GeoTIFF pair: {result.summary()}")
+        return True
 
     def _save_products(
         self,
