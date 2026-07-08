@@ -38,7 +38,15 @@ All notable changes to this project will be documented in this file.
 - Batch processing continuation after GeoTIFF compatibility failures
 - 5 automated tests for GeoTIFF batch integration
 - 40 automated tests in the complete test suite
-- 
+- GeoTIFF raster data loader
+- Raster pixel data loading using Rasterio
+- Band-first NumPy array representation
+- Single-band and multi-band raster support
+- NoData-aware raster loading
+- Valid-data mask generation
+- Automated tests for GeoTIFF raster loading
+- 48 automated tests in the complete test suite
+
 ### Improved
 
 - Extended FloodVision with the foundation for GIS raster workflows
@@ -48,6 +56,9 @@ All notable changes to this project will be documented in this file.
 - Improved batch processing reliability for geospatial raster workflows
 - Improved error reporting for incompatible GeoTIFF pairs
 - Preserved existing PNG and JPG processing behavior
+- Extended GeoTIFF support from metadata analysis to actual raster data loading
+- Improved handling of NoData pixels in geospatial raster workflows
+- Improved test coverage for GeoTIFF processing
 ---
 
 ## [0.7.1] - 2026-07-07

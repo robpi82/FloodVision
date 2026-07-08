@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-red?logo=opencv)
-![Tests](https://img.shields.io/badge/tests-40%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-48%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -81,6 +81,13 @@ Currently under development for FloodVision v0.8.0:
 - Safe rejection of incompatible GeoTIFF pairs
 - Safe rejection of mixed image and GeoTIFF pairs
 - Batch processing continuation after compatibility failures
+- GeoTIFF raster data loading
+- Raster pixel data extraction as NumPy arrays
+- Band-first raster data representation
+- Single-band and multi-band raster support
+- NoData-aware raster loading
+- Valid-data mask generation
+- GeoTIFF raster loading error handling
 
 ### Reporting
 
@@ -98,10 +105,14 @@ Currently under development for FloodVision v0.8.0:
 - GeoTIFF metadata loader tests
 - GeoTIFF compatibility validation tests
 - GeoTIFF batch integration tests
+- GeoTIFF raster loader tests
+- Raster pixel data tests
+- Multi-band raster tests
+- NoData handling tests
 - Error handling tests
 - CRS and EPSG tests
 - Floating-point tolerance tests
-- 40 automated tests currently passing
+- 48 automated tests currently passing
 
 ---
 
@@ -168,7 +179,7 @@ python -m pytest -v
 Current development status:
 
 ```text
-40 tests passed
+48 tests passed
 ```
 
 ---
@@ -204,6 +215,7 @@ FloodVision
 │   ├── exceptions.py
 │   ├── geotiff_compatibility.py
 │   ├── geotiff_loader.py
+│   ├── geotiff_raster_loader.py
 │   ├── image_loader.py
 │   ├── mask_generator.py
 │   ├── report_generator.py
@@ -215,7 +227,8 @@ FloodVision
 │   ├── conftest.py
 │   ├── test_batch_geotiff_integration.py
 │   ├── test_geotiff_compatibility.py
-│   └── test_geotiff_loader.py
+│   ├── test_geotiff_loader.py
+│   └── test_geotiff_raster_loader.py
 │
 ├── gui_main.py
 ├── main.py
@@ -293,8 +306,13 @@ Currently implemented on the development branch:
 - Safe handling of incompatible GeoTIFF pairs
 - Safe handling of mixed image and GeoTIFF pairs
 - Batch processing continuation after compatibility failures
+- GeoTIFF raster data loader
+- Raster pixel data loading
+- Band-first NumPy array representation
+- Single-band and multi-band raster support
+- NoData-aware valid-data mask generation
 - Automated pytest infrastructure
-- 40 automated tests
+- 48 automated tests
 
 ---
 
@@ -308,6 +326,9 @@ Currently implemented on the development branch:
 - Geospatial metadata
 - GeoTIFF pair compatibility validation
 - Batch processing integration for GeoTIFF compatibility validation
+- GeoTIFF raster data loading
+- GeoTIFF processing pipeline integration
+- Georeferenced output products
 - GIS workflow integration
 
 ### Version 0.9.0
