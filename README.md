@@ -4,16 +4,20 @@
 
 # 🌊 FloodVision
 
-![Version](https://img.shields.io/badge/version-v0.7.1-orange)
+![Version](https://img.shields.io/badge/stable-v0.7.1-orange)
+![Development](https://img.shields.io/badge/development-v0.8.0-yellow)
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-red?logo=opencv)
+![Tests](https://img.shields.io/badge/tests-35%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
-Professional desktop application for flood detection using computer vision and image processing.
+Professional desktop application for flood detection using computer vision, image processing, and geospatial raster analysis.
 
 FloodVision compares two images of the same location ("Before" and "After") and automatically detects newly flooded areas.
+
+The project is currently being extended with GeoTIFF support and GIS raster workflows.
 
 ---
 
@@ -23,7 +27,7 @@ FloodVision compares two images of the same location ("Before" and "After") and 
 
 - Automatic water detection
 - Flood change detection
-- Before/After image comparison
+- Before / After image comparison
 - Overlay visualization
 - New flood mask generation
 - Batch processing
@@ -49,6 +53,30 @@ FloodVision compares two images of the same location ("Before" and "After") and 
 - Statistics panel
 - Batch processing summary
 
+### GeoTIFF & GIS Foundation
+
+Currently under development for FloodVision v0.8.0:
+
+- Rasterio integration
+- GeoTIFF file detection and validation
+- GeoTIFF metadata extraction
+- Coordinate Reference System (CRS) extraction
+- EPSG code extraction
+- Raster bounds extraction
+- Pixel resolution extraction
+- Raster dimensions and band information
+- Raster data type information
+- NoData value extraction
+- Affine transform metadata extraction
+- GeoTIFF pair compatibility validation
+- CRS compatibility checks
+- Raster dimension compatibility checks
+- Pixel resolution compatibility checks
+- Raster bounds compatibility checks
+- Affine transform compatibility checks
+- Structured compatibility results and mismatch reporting
+- Tolerance-based comparison of geospatial values
+
 ### Reporting
 
 - CSV report generation
@@ -57,6 +85,17 @@ FloodVision compares two images of the same location ("Before" and "After") and 
 - Flood increase calculation
 - Batch summary
 - Automatic output folder generation
+
+### Automated Testing
+
+- pytest test infrastructure
+- Synthetic GeoTIFF test data
+- GeoTIFF metadata loader tests
+- GeoTIFF compatibility validation tests
+- Error handling tests
+- CRS and EPSG tests
+- Floating-point tolerance tests
+- 35 automated tests currently passing
 
 ---
 
@@ -69,6 +108,8 @@ FloodVision compares two images of the same location ("Before" and "After") and 
 - Pillow
 - Matplotlib
 - PyYAML
+- Rasterio
+- pytest
 
 ---
 
@@ -82,6 +123,14 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 pip install -r requirements.txt
+```
+
+### Development Dependencies
+
+To install the development and testing dependencies:
+
+```bash
+pip install -r requirements-dev.txt
 ```
 
 ---
@@ -98,6 +147,22 @@ python gui_main.py
 
 ```bash
 python main.py
+```
+
+---
+
+## Tests
+
+Run the complete automated test suite:
+
+```bash
+python -m pytest -v
+```
+
+Current development status:
+
+```text
+35 tests passed
 ```
 
 ---
@@ -131,6 +196,8 @@ FloodVision
 │   ├── change_detection.py
 │   ├── config.py
 │   ├── exceptions.py
+│   ├── geotiff_compatibility.py
+│   ├── geotiff_loader.py
 │   ├── image_loader.py
 │   ├── mask_generator.py
 │   ├── report_generator.py
@@ -138,10 +205,16 @@ FloodVision
 │   ├── visualization.py
 │   └── water_detection.py
 │
+├── tests/
+│   ├── conftest.py
+│   ├── test_geotiff_compatibility.py
+│   └── test_geotiff_loader.py
+│
 ├── gui_main.py
 ├── main.py
 ├── config.yaml
 ├── requirements.txt
+├── requirements-dev.txt
 ├── CHANGELOG.md
 ├── LICENSE
 └── README.md
@@ -165,11 +238,11 @@ FloodVision
 
 ---
 
-## Current Version
+## Stable Release
 
 ### Version 0.7.1
 
-Implemented:
+The current stable release includes:
 
 - Professional desktop GUI
 - Drag & Drop folder support
@@ -191,24 +264,49 @@ Implemented:
 
 ---
 
+## Current Development
+
+### Version 0.8.0
+
+Currently implemented on the development branch:
+
+- Rasterio integration
+- GeoTIFF metadata loader
+- GeoTIFF file validation
+- CRS and EPSG extraction
+- Raster bounds extraction
+- Pixel resolution extraction
+- Raster band and data type information
+- NoData value extraction
+- Affine transform metadata extraction
+- GeoTIFF pair compatibility validation
+- Structured compatibility results
+- Automated pytest infrastructure
+- 35 automated tests
+
+The next development step will integrate GeoTIFF compatibility validation into the FloodVision processing workflow.
+
+---
+
 ## Roadmap
 
-### Version 0.8
+### Version 0.8.0
 
 - GeoTIFF support
 - Rasterio integration
-- Coordinate reference systems
+- Coordinate Reference Systems
 - Geospatial metadata
-- GIS workflows
+- GeoTIFF pair compatibility validation
+- GIS workflow integration
 
-### Version 0.9
+### Version 0.9.0
 
 - Sentinel-2 imagery
 - Landsat imagery
 - Raster processing
 - GIS export
 
-### Version 1.0
+### Version 1.0.0
 
 - AI flood segmentation
 - Deep Learning models
