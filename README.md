@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-red?logo=opencv)
-![Tests](https://img.shields.io/badge/tests-48%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-57%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -88,6 +88,13 @@ Currently under development for FloodVision v0.8.0:
 - NoData-aware raster loading
 - Valid-data mask generation
 - GeoTIFF raster loading error handling
+- GeoTIFF image adapter
+- Conversion of three-band GeoTIFF raster data to RGB images
+- Band-first NumPy array to Pillow RGB image conversion
+- Automatic scaling of numeric raster data to uint8
+- NoData-aware RGB image conversion
+- Invalid raster pixels masked as black
+- Validation of supported raster band configurations
 
 ### Reporting
 
@@ -106,13 +113,19 @@ Currently under development for FloodVision v0.8.0:
 - GeoTIFF compatibility validation tests
 - GeoTIFF batch integration tests
 - GeoTIFF raster loader tests
+- GeoTIFF image adapter tests
 - Raster pixel data tests
 - Multi-band raster tests
+- RGB conversion tests
+- Raster data scaling tests
 - NoData handling tests
+- NoData masking tests
+- Unsupported band configuration tests
+- Non-finite raster value tests
 - Error handling tests
 - CRS and EPSG tests
 - Floating-point tolerance tests
-- 48 automated tests currently passing
+- 57 automated tests currently passing
 
 ---
 
@@ -179,7 +192,7 @@ python -m pytest -v
 Current development status:
 
 ```text
-48 tests passed
+57 tests passed
 ```
 
 ---
@@ -214,6 +227,7 @@ FloodVision
 │   ├── config.py
 │   ├── exceptions.py
 │   ├── geotiff_compatibility.py
+│   ├── geotiff_image_adapter.py
 │   ├── geotiff_loader.py
 │   ├── geotiff_raster_loader.py
 │   ├── image_loader.py
@@ -227,6 +241,7 @@ FloodVision
 │   ├── conftest.py
 │   ├── test_batch_geotiff_integration.py
 │   ├── test_geotiff_compatibility.py
+│   ├── test_geotiff_image_adapter.py
 │   ├── test_geotiff_loader.py
 │   └── test_geotiff_raster_loader.py
 │
@@ -311,8 +326,13 @@ Currently implemented on the development branch:
 - Band-first NumPy array representation
 - Single-band and multi-band raster support
 - NoData-aware valid-data mask generation
+- GeoTIFF image adapter
+- Three-band raster to RGB image conversion
+- Automatic raster value scaling to uint8
+- NoData-aware image conversion
+- Validation of supported GeoTIFF band configurations
 - Automated pytest infrastructure
-- 48 automated tests
+- 57 automated tests
 
 ---
 
@@ -327,6 +347,7 @@ Currently implemented on the development branch:
 - GeoTIFF pair compatibility validation
 - Batch processing integration for GeoTIFF compatibility validation
 - GeoTIFF raster data loading
+- GeoTIFF image adapter
 - GeoTIFF processing pipeline integration
 - Georeferenced output products
 - GIS workflow integration
