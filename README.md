@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-red?logo=opencv)
-![Tests](https://img.shields.io/badge/tests-57%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-59%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -95,6 +95,12 @@ Currently under development for FloodVision v0.8.0:
 - NoData-aware RGB image conversion
 - Invalid raster pixels masked as black
 - Validation of supported raster band configurations
+- Productive GeoTIFF raster workflow integration
+- Automatic routing between legacy images and GeoTIFF raster processing
+- GeoTIFF raster loading integrated into batch processing
+- GeoTIFF RGB image adaptation integrated into batch processing
+- Compatible three-band GeoTIFFs processed through the existing water detection pipeline
+- Legacy PNG and JPEG processing workflow preserved
 
 ### Reporting
 
@@ -114,6 +120,8 @@ Currently under development for FloodVision v0.8.0:
 - GeoTIFF batch integration tests
 - GeoTIFF raster loader tests
 - GeoTIFF image adapter tests
+- Productive GeoTIFF pipeline integration tests
+- GeoTIFF-to-RGB processing path tests
 - Raster pixel data tests
 - Multi-band raster tests
 - RGB conversion tests
@@ -121,11 +129,12 @@ Currently under development for FloodVision v0.8.0:
 - NoData handling tests
 - NoData masking tests
 - Unsupported band configuration tests
+- Unsupported GeoTIFF band configuration tests
 - Non-finite raster value tests
 - Error handling tests
 - CRS and EPSG tests
 - Floating-point tolerance tests
-- 57 automated tests currently passing
+- 59 automated tests currently passing
 
 ---
 
@@ -192,7 +201,7 @@ python -m pytest -v
 Current development status:
 
 ```text
-57 tests passed
+59 tests passed
 ```
 
 ---
@@ -331,8 +340,13 @@ Currently implemented on the development branch:
 - Automatic raster value scaling to uint8
 - NoData-aware image conversion
 - Validation of supported GeoTIFF band configurations
+- Productive GeoTIFF raster workflow integrated into batch processing
+- Automatic selection of legacy image or GeoTIFF processing paths
+- GeoTIFF raster loading and RGB adaptation before water detection
+- Compatible three-band GeoTIFF processing through the existing detection pipeline
+- Existing PNG and JPEG processing workflow preserved
 - Automated pytest infrastructure
-- 57 automated tests
+- 59 automated tests
 
 ---
 

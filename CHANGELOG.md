@@ -46,6 +46,13 @@ All notable changes to this project will be documented in this file.
 - Valid-data mask generation
 - Automated tests for GeoTIFF raster loading
 - 48 automated tests in the complete test suite
+- Productive GeoTIFF raster workflow integration
+- Automatic routing between legacy image and GeoTIFF processing paths
+- GeoTIFF raster loading integrated into batch processing
+- GeoTIFF image adapter integrated into the processing pipeline
+- Compatible three-band GeoTIFF processing through the existing water detection pipeline
+- Automated tests for the productive GeoTIFF processing path
+- 59 automated tests in the complete test suite
 
 ### Improved
 
@@ -59,6 +66,10 @@ All notable changes to this project will be documented in this file.
 - Extended GeoTIFF support from metadata analysis to actual raster data loading
 - Improved handling of NoData pixels in geospatial raster workflows
 - Improved test coverage for GeoTIFF processing
+- Extended GeoTIFF support from isolated backend components to productive batch processing
+- Preserved the existing PNG and JPEG image workflow while adding a dedicated GeoTIFF processing path
+- Improved handling of unsupported GeoTIFF band configurations
+- Improved integration test coverage for geospatial raster processing
 ---
 
 ## [0.7.1] - 2026-07-07
