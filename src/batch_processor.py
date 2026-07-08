@@ -30,6 +30,8 @@ from pathlib import Path
 
 from src import change_detection, config, mask_generator, visualization
 from src.change_detection import MaskComparison
+from src.geotiff_compatibility import GeoTiffCompatibilityValidator
+from src.geotiff_loader import GeoTiffLoader
 from src.image_loader import ImageLoader, ImagePair, find_image_pairs
 from src.water_detection import WaterDetectionResult, WaterSegmentationStrategy
 
@@ -192,6 +194,8 @@ class BatchProcessor:
         output_dir: Path = config.OUTPUT_DATA_DIR,
         on_pair_done: Callable[[FloodComparisonResult, int, int], None] | None = None,
         is_cancelled: Callable[[], bool] | None = None,
+        geotiff_loader: GeoTiffLoader | None = None,
+        geotiff_validator: GeoTiffCompatibilityValidator | None = None,
     ) -> None:
         """Initialise the batch processor.
 
@@ -219,6 +223,8 @@ class BatchProcessor:
         self._output_dir = output_dir
         self._on_pair_done = on_pair_done
         self._is_cancelled = is_cancelled
+        self._geotiff_loader = geotiff_loader or GeoTiffLoader()
+        self._geotiff_validator = geotiff_validator or GeoTiffCompatibilityValidator()
 
     def run(self) -> BatchResult:
         """Process all matching image pairs.
@@ -301,6 +307,7 @@ class BatchProcessor:
         """
         start = time.perf_counter()
         try:
+            self._validate_geotiff_pair(pair)
             before = self._detector.detect(self._loader.load(pair.before_path))
             after = self._detector.detect(self._loader.load(pair.after_path))
             comparison = change_detection.compare_masks(before.mask, after.mask)
@@ -338,6 +345,31 @@ class BatchProcessor:
             increase_percent=comparison.increase_percent,
             processing_time_seconds=elapsed,
         )
+
+    def _validate_geotiff_pair(self, pair: ImagePair) -> None:
+        """Reject mixed or spatially incompatible GeoTIFF pairs.
+
+        Plain TIFF files remain part of the legacy image workflow. A pair in
+        which exactly one file is a georeferenced GeoTIFF is rejected because
+        the two inputs cannot be compared safely under a single spatial model.
+        """
+        before_is_geotiff = self._geotiff_loader.is_geotiff(pair.before_path)
+        after_is_geotiff = self._geotiff_loader.is_geotiff(pair.after_path)
+
+        if before_is_geotiff != after_is_geotiff:
+            raise ValueError(
+                "Mixed image pair is not supported: both files must be GeoTIFFs "
+                "or both must use the legacy image workflow"
+            )
+        if not before_is_geotiff:
+            return
+
+        logger.info("Validating GeoTIFF compatibility for pair %s", pair.name)
+        before_metadata = self._geotiff_loader.read_metadata(pair.before_path)
+        after_metadata = self._geotiff_loader.read_metadata(pair.after_path)
+        result = self._geotiff_validator.validate(before_metadata, after_metadata)
+        if not result.is_compatible:
+            raise ValueError(f"Incompatible GeoTIFF pair: {result.summary()}")
 
     def _save_products(
         self,
