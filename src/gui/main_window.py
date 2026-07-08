@@ -37,6 +37,7 @@ from src.batch_processor import BatchResult, FloodComparisonResult, ProcessingSt
 from src.gui import theme
 from src.gui.app_settings import AppSettings, save_settings
 from src.gui.folder_field import FolderDropLineEdit
+from src.gui.geotiff_info_panel import GeoTiffInfoPanel
 from src.gui.image_view import ImageView
 from src.gui.log_console import LogConsole
 from src.gui.log_handler import SUCCESS, QtLogHandler
@@ -70,8 +71,10 @@ class MainWindow(QMainWindow):
 
         self._image_view = ImageView()
         self._statistics = StatisticsPanel()
+        self._geotiff_info = GeoTiffInfoPanel()
         self._build_layout()
         self._build_statistics_dock()
+        self._build_geotiff_info_dock()
         self._build_menu()
         self._install_log_bridge()
         self._update_navigation_ui()
@@ -276,6 +279,15 @@ class MainWindow(QMainWindow):
         )
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
+    def _build_geotiff_info_dock(self) -> None:
+        """Wrap the GeoTIFF information panel into a dock."""
+        dock = QDockWidget("GeoTIFF Information", self)
+        dock.setWidget(self._geotiff_info)
+        dock.setAllowedAreas(
+            Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea
+        )
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
+
     def _build_menu(self) -> None:
         """Create the File and View menus with keyboard shortcuts."""
         file_menu = self.menuBar().addMenu("&File")
@@ -391,6 +403,7 @@ class MainWindow(QMainWindow):
         self._navigator.clear()
         self._update_navigation_ui()
         self._statistics.reset()
+        self._geotiff_info.clear()
         self._progress.setValue(0)
         self._last_result = None
         self._batch_started = time.monotonic()
@@ -560,6 +573,7 @@ class MainWindow(QMainWindow):
         )
         if update_stats:
             self._statistics.show_pair_details(entry.record)
+        self._geotiff_info.show_file(entry.before_image)
         self._update_navigation_ui()
 
     def _update_navigation_ui(self) -> None:
