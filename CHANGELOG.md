@@ -22,11 +22,22 @@ All notable changes to this project will be documented in this file.
 - Initial automated test infrastructure using pytest
 - 13 automated tests for the GeoTIFF metadata loader
 - Separate development dependencies via `requirements-dev.txt`
-
+- GeoTIFF pair compatibility validation
+- CRS compatibility checks
+- Raster dimension compatibility checks
+- Pixel resolution compatibility checks
+- Raster bounds compatibility checks
+- Affine transform compatibility checks
+- Structured compatibility results and mismatch reporting
+- 22 automated tests for GeoTIFF pair compatibility
+- 35 automated tests in the complete test suite
+- 
 ### Improved
 
 - Extended FloodVision with the foundation for GIS raster workflows
 - Improved project reliability through automated testing
+- Improved reliability of spatial raster comparison
+- Added tolerance-based comparison for floating-point geospatial values
 ---
 
 ## [0.7.1] - 2026-07-07
