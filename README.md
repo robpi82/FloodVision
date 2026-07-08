@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-red?logo=opencv)
-![Tests](https://img.shields.io/badge/tests-35%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-40%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -76,6 +76,11 @@ Currently under development for FloodVision v0.8.0:
 - Affine transform compatibility checks
 - Structured compatibility results and mismatch reporting
 - Tolerance-based comparison of geospatial values
+- GeoTIFF compatibility validation integrated into batch processing
+- Automatic spatial compatibility checks before GeoTIFF pair processing
+- Safe rejection of incompatible GeoTIFF pairs
+- Safe rejection of mixed image and GeoTIFF pairs
+- Batch processing continuation after compatibility failures
 
 ### Reporting
 
@@ -92,10 +97,11 @@ Currently under development for FloodVision v0.8.0:
 - Synthetic GeoTIFF test data
 - GeoTIFF metadata loader tests
 - GeoTIFF compatibility validation tests
+- GeoTIFF batch integration tests
 - Error handling tests
 - CRS and EPSG tests
 - Floating-point tolerance tests
-- 35 automated tests currently passing
+- 40 automated tests currently passing
 
 ---
 
@@ -162,7 +168,7 @@ python -m pytest -v
 Current development status:
 
 ```text
-35 tests passed
+40 tests passed
 ```
 
 ---
@@ -207,6 +213,7 @@ FloodVision
 │
 ├── tests/
 │   ├── conftest.py
+│   ├── test_batch_geotiff_integration.py
 │   ├── test_geotiff_compatibility.py
 │   └── test_geotiff_loader.py
 │
@@ -281,10 +288,13 @@ Currently implemented on the development branch:
 - Affine transform metadata extraction
 - GeoTIFF pair compatibility validation
 - Structured compatibility results
+- GeoTIFF compatibility validation integrated into batch processing
+- Automatic spatial compatibility checks before GeoTIFF pair processing
+- Safe handling of incompatible GeoTIFF pairs
+- Safe handling of mixed image and GeoTIFF pairs
+- Batch processing continuation after compatibility failures
 - Automated pytest infrastructure
-- 35 automated tests
-
-The next development step will integrate GeoTIFF compatibility validation into the FloodVision processing workflow.
+- 40 automated tests
 
 ---
 
@@ -297,6 +307,7 @@ The next development step will integrate GeoTIFF compatibility validation into t
 - Coordinate Reference Systems
 - Geospatial metadata
 - GeoTIFF pair compatibility validation
+- Batch processing integration for GeoTIFF compatibility validation
 - GIS workflow integration
 
 ### Version 0.9.0

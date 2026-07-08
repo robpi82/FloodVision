@@ -31,6 +31,13 @@ All notable changes to this project will be documented in this file.
 - Structured compatibility results and mismatch reporting
 - 22 automated tests for GeoTIFF pair compatibility
 - 35 automated tests in the complete test suite
+- GeoTIFF compatibility validation integrated into batch processing
+- Automatic spatial compatibility checks before GeoTIFF pair processing
+- Safe rejection of incompatible GeoTIFF pairs
+- Safe rejection of mixed image and GeoTIFF pairs
+- Batch processing continuation after GeoTIFF compatibility failures
+- 5 automated tests for GeoTIFF batch integration
+- 40 automated tests in the complete test suite
 - 
 ### Improved
 
@@ -38,6 +45,9 @@ All notable changes to this project will be documented in this file.
 - Improved project reliability through automated testing
 - Improved reliability of spatial raster comparison
 - Added tolerance-based comparison for floating-point geospatial values
+- Improved batch processing reliability for geospatial raster workflows
+- Improved error reporting for incompatible GeoTIFF pairs
+- Preserved existing PNG and JPG processing behavior
 ---
 
 ## [0.7.1] - 2026-07-07
