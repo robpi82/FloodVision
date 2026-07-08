@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-red?logo=opencv)
-![Tests](https://img.shields.io/badge/tests-59%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-63%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -17,7 +17,7 @@ Professional desktop application for flood detection using computer vision, imag
 
 FloodVision compares two images of the same location ("Before" and "After") and automatically detects newly flooded areas.
 
-The project is currently being extended with GeoTIFF support and GIS raster workflows.
+The project is currently being extended with GeoTIFF support, GIS raster workflows, and visible geospatial metadata integration in the desktop GUI.
 
 ---
 
@@ -51,9 +51,12 @@ The project is currently being extended with GeoTIFF support and GIS raster work
 - Progress bar
 - Live log console
 - Statistics panel
+- GeoTIFF Information Panel
+- Automatic GeoTIFF metadata display
+- Progress tracking
 - Batch processing summary
 
-### GeoTIFF & GIS Foundation
+### GeoTIFF & GIS Support
 
 Currently under development for FloodVision v0.8.0:
 
@@ -102,6 +105,24 @@ Currently under development for FloodVision v0.8.0:
 - Compatible three-band GeoTIFFs processed through the existing water detection pipeline
 - Legacy PNG and JPEG processing workflow preserved
 
+### GeoTIFF Information Panel
+
+FloodVision now provides visible geospatial metadata directly in the desktop application.
+
+When browsing a processed GeoTIFF result, the GeoTIFF Information Panel automatically displays:
+
+- Coordinate Reference System (CRS)
+- EPSG code
+- Raster width and height
+- Number of raster bands
+- Pixel resolution
+- NoData value
+- Raster bounds
+
+For standard images without geospatial metadata, the panel displays a neutral information state.
+
+The panel is implemented as a dedicated PySide6 dock widget and automatically updates when navigating between processed image pairs.
+
 ### Reporting
 
 - CSV report generation
@@ -114,6 +135,7 @@ Currently under development for FloodVision v0.8.0:
 ### Automated Testing
 
 - pytest test infrastructure
+- pytest-qt GUI testing infrastructure
 - Synthetic GeoTIFF test data
 - GeoTIFF metadata loader tests
 - GeoTIFF compatibility validation tests
@@ -122,6 +144,11 @@ Currently under development for FloodVision v0.8.0:
 - GeoTIFF image adapter tests
 - Productive GeoTIFF pipeline integration tests
 - GeoTIFF-to-RGB processing path tests
+- GeoTIFF Information Panel tests
+- GUI initial state tests
+- GUI metadata display tests
+- GUI non-GeoTIFF state tests
+- GUI panel reset tests
 - Raster pixel data tests
 - Multi-band raster tests
 - RGB conversion tests
@@ -134,7 +161,7 @@ Currently under development for FloodVision v0.8.0:
 - Error handling tests
 - CRS and EPSG tests
 - Floating-point tolerance tests
-- 59 automated tests currently passing
+- 63 automated tests currently passing
 
 ---
 
@@ -149,6 +176,8 @@ Currently under development for FloodVision v0.8.0:
 - PyYAML
 - Rasterio
 - pytest
+- pytest-qt
+- Ruff
 
 ---
 
@@ -171,6 +200,12 @@ To install the development and testing dependencies:
 ```bash
 pip install -r requirements-dev.txt
 ```
+
+The development dependencies include:
+
+- pytest
+- pytest-qt
+- Ruff
 
 ---
 
@@ -201,7 +236,7 @@ python -m pytest -v
 Current development status:
 
 ```text
-59 tests passed
+63 tests passed
 ```
 
 ---
@@ -227,9 +262,17 @@ FloodVision
 │   ├── gui/
 │   │   ├── app_settings.py
 │   │   ├── folder_field.py
+│   │   ├── geotiff_info_panel.py
 │   │   ├── image_view.py
+│   │   ├── log_console.py
+│   │   ├── log_handler.py
 │   │   ├── main_window.py
-│   │   └── theme.py
+│   │   ├── navigator.py
+│   │   ├── settings_dialog.py
+│   │   ├── statistics_panel.py
+│   │   ├── summary_dialog.py
+│   │   ├── theme.py
+│   │   └── worker.py
 │   │
 │   ├── batch_processor.py
 │   ├── change_detection.py
@@ -251,6 +294,7 @@ FloodVision
 │   ├── test_batch_geotiff_integration.py
 │   ├── test_geotiff_compatibility.py
 │   ├── test_geotiff_image_adapter.py
+│   ├── test_geotiff_info_panel.py
 │   ├── test_geotiff_loader.py
 │   └── test_geotiff_raster_loader.py
 │
@@ -345,8 +389,15 @@ Currently implemented on the development branch:
 - GeoTIFF raster loading and RGB adaptation before water detection
 - Compatible three-band GeoTIFF processing through the existing detection pipeline
 - Existing PNG and JPEG processing workflow preserved
-- Automated pytest infrastructure
-- 59 automated tests
+- GeoTIFF Information Panel integrated into the desktop GUI
+- Automatic geospatial metadata display when browsing results
+- CRS and EPSG display
+- Raster dimensions and band count display
+- Pixel resolution display
+- NoData display
+- Raster bounds display
+- Automated GUI testing with pytest-qt
+- 63 automated tests
 
 ---
 
@@ -354,23 +405,34 @@ Currently implemented on the development branch:
 
 ### Version 0.8.0
 
-- GeoTIFF support
+Completed development steps:
+
+- GeoTIFF support foundation
 - Rasterio integration
-- Coordinate Reference Systems
-- Geospatial metadata
+- Coordinate Reference System metadata
+- Geospatial metadata extraction
 - GeoTIFF pair compatibility validation
 - Batch processing integration for GeoTIFF compatibility validation
 - GeoTIFF raster data loading
 - GeoTIFF image adapter
-- GeoTIFF processing pipeline integration
+- Productive GeoTIFF processing pipeline integration
+- GeoTIFF Information Panel
+- Automated GeoTIFF GUI tests
+
+Remaining development steps:
+
+- Manual testing with real-world GeoTIFF datasets
 - Georeferenced output products
-- GIS workflow integration
+- Final GIS workflow integration
+- Full regression testing
+- Documentation finalization
+- Version 0.8.0 release
 
 ### Version 0.9.0
 
 - Sentinel-2 imagery
 - Landsat imagery
-- Raster processing
+- Advanced raster processing
 - GIS export
 
 ### Version 1.0.0

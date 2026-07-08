@@ -53,6 +53,16 @@ All notable changes to this project will be documented in this file.
 - Compatible three-band GeoTIFF processing through the existing water detection pipeline
 - Automated tests for the productive GeoTIFF processing path
 - 59 automated tests in the complete test suite
+- GeoTIFF Information Panel in the desktop GUI
+- Display of CRS and EPSG information
+- Display of raster dimensions and band count
+- Display of pixel resolution
+- Display of NoData values
+- Display of raster bounds
+- Automatic GeoTIFF metadata display when browsing processed results
+- Neutral information state for non-georeferenced images
+- GUI tests using pytest-qt
+- 63 automated tests in the complete test suite
 
 ### Improved
 
@@ -70,6 +80,11 @@ All notable changes to this project will be documented in this file.
 - Preserved the existing PNG and JPEG image workflow while adding a dedicated GeoTIFF processing path
 - Improved handling of unsupported GeoTIFF band configurations
 - Improved integration test coverage for geospatial raster processing
+- Extended the desktop GUI with visible geospatial metadata
+- Improved integration between the GeoTIFF backend and PySide6 user interface
+- Improved result navigation with automatic metadata updates
+- Added automated test coverage for GeoTIFF GUI components
+- Added pytest-qt to the development dependencies
 ---
 
 ## [0.7.1] - 2026-07-07
