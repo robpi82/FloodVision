@@ -63,6 +63,8 @@ All notable changes to this project will be documented in this file.
 - Neutral information state for non-georeferenced images
 - GUI tests using pytest-qt
 - 63 automated tests in the complete test suite
+- Synthetic GeoTIFF test data generator for reproducible end-to-end testing
+- Manual GeoTIFF end-to-end workflow validation on Windows
 
 ### Improved
 
