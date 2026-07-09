@@ -53,7 +53,7 @@ class GeoTiffInfoPanel(QWidget):
         self._values["Size"].setText(f"{metadata.width} × {metadata.height} px")
         self._values["Bands"].setText(str(metadata.band_count))
         self._values["Resolution"].setText(
-            f"{metadata.resolution[0]:g} × {metadata.resolution[1]:g}"
+            f"{metadata.pixel_size[0]:g} × {metadata.pixel_size[1]:g}"
         )
         self._values["NoData"].setText(
             str(metadata.nodata) if metadata.nodata is not None else "None"

@@ -150,6 +150,8 @@ All notable changes to this project will be documented in this file.
 
 - Improved error handling
 - More stable batch processing
+- Fixed GeoTIFF Information Panel crash caused by an outdated metadata attribute name
+- Updated GeoTIFF Information Panel tests to use the current pixel_size metadata field
 
 ---
 

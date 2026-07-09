@@ -14,7 +14,7 @@ class FakeLoader:
     def read_metadata(self, path):
         return SimpleNamespace(
             crs="EPSG:32632", epsg=32632, width=2048, height=1024,
-            band_count=3, resolution=(10.0, 10.0), nodata=0.0,
+            band_count=3, pixel_size=(10.0, 10.0), nodata=0.0,
             bounds=(500000.0, 5100000.0, 520480.0, 5110240.0),
         )
 
