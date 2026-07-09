@@ -4,11 +4,11 @@
 
 # 🌊 FloodVision
 
-![Version](https://img.shields.io/badge/stable-v0.7.1-orange)
-![Development](https://img.shields.io/badge/development-v0.8.0-yellow)
-![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
+![Stable Version](https://img.shields.io/badge/stable-v0.7.1-red)
+![Development Version](https://img.shields.io/badge/development-v0.9.0-yellow)
+![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
-![OpenCV](https://img.shields.io/badge/OpenCV-4.x-red?logo=opencv)
+![OpenCV](https://img.shields.io/badge/OpenCV-4.x-pink)
 ![Tests](https://img.shields.io/badge/tests-95%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
