@@ -249,7 +249,7 @@ python -m pytest -v
 Current development status:
 
 ```text
-63 tests passed
+95 tests passed
 ```
 
 ---
@@ -410,7 +410,7 @@ Currently implemented on the development branch:
 - NoData display
 - Raster bounds display
 - Automated GUI testing with pytest-qt
-- 63 automated tests
+- 95 automated tests
 
 ---
 
@@ -431,13 +431,16 @@ Completed development steps:
 - Productive GeoTIFF processing pipeline integration
 - GeoTIFF Information Panel
 - Automated GeoTIFF GUI tests
+- Georeferenced GeoTIFF flood mask export
+- Preservation of CRS, affine transform, raster dimensions, and spatial bounds
+- GIS-ready single-band flood classification output
+- Automated GeoTIFF export tests
+- Manual end-to-end testing with synthetic GeoTIFF datasets
+- Full regression testing
 
 Remaining development steps:
 
 - Manual testing with real-world GeoTIFF datasets
-- Georeferenced output products
-- Final GIS workflow integration
-- Full regression testing
 - Documentation finalization
 - Version 0.8.0 release
 
