@@ -87,6 +87,11 @@ All notable changes to this project will be documented in this file.
 - Improved result navigation with automatic metadata updates
 - Added automated test coverage for GeoTIFF GUI components
 - Added pytest-qt to the development dependencies
+- Improved cross-platform portability of GUI directory settings
+- Added automatic fallback to project-relative default directories when stored paths do not exist on the current system
+- Preserved valid user-selected custom directories across application restarts
+- Added automated test coverage for cross-platform GUI settings behavior
+- 78 automated tests in the complete test suite
 ---
 
 ## [0.7.1] - 2026-07-07

@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-red?logo=opencv)
-![Tests](https://img.shields.io/badge/tests-63%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-78%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -161,7 +161,9 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 - Error handling tests
 - CRS and EPSG tests
 - Floating-point tolerance tests
-- 63 automated tests currently passing
+- Cross-platform GUI settings tests
+- Automatic fallback tests for invalid machine-specific directory paths
+- 78 automated tests currently passing
 
 ---
 
