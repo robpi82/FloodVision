@@ -446,18 +446,54 @@ Remaining development steps:
 
 ### Version 0.9.0
 
-- Sentinel-2 imagery
-- Landsat imagery
+**Sentinel-2 & Multispectral Raster Foundation**
+
+Planned development:
+
+- Sentinel-2 imagery support
+- Multispectral GeoTIFF raster loading
+- Raster band selection
+- Validation of multispectral band configurations
+- Sentinel-2 band metadata handling
+- Support for non-RGB raster workflows
+- Preservation of existing RGB and GeoTIFF workflows
+- Automated tests for multispectral raster processing
+
+### Version 0.10.0
+
+**NDWI Water Detection**
+
+Planned development:
+
+- NDWI-based water detection
+- Green and Near-Infrared band processing
+- Configurable NDWI thresholds
+- NDWI raster visualization
+- NDWI flood change detection
+- Georeferenced NDWI output products
+
+### Version 0.11.0
+
+**Advanced Raster Processing**
+
+Planned development:
+
+- Landsat imagery support
+- Extended multispectral workflows
 - Advanced raster processing
-- GIS export
+- Additional GIS export capabilities
+- Performance improvements for large raster datasets
 
 ### Version 1.0.0
 
-- AI flood segmentation
+**AI Flood Segmentation**
+
+Planned development:
+
+- AI-based flood segmentation
 - Deep Learning models
 - U-Net integration
 - PyTorch support
-
 ---
 
 ## Author

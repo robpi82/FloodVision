@@ -4,7 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [0.8.0] - Unreleased
+## [0.9.0] - Unreleased
+
+### Planned
+
+- Sentinel-2 imagery support
+- Multispectral GeoTIFF raster loading
+- Raster band selection
+- Validation of multispectral band configurations
+- Sentinel-2 band metadata handling
+- Support for non-RGB raster workflows
+- Preservation of existing RGB and GeoTIFF processing workflows
+- Automated tests for multispectral raster processing
+
+---
+
+## ## [0.8.0] - 2026-07-09
 
 ### Added
 
