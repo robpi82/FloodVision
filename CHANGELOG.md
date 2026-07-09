@@ -65,6 +65,13 @@ All notable changes to this project will be documented in this file.
 - 63 automated tests in the complete test suite
 - Synthetic GeoTIFF test data generator for reproducible end-to-end testing
 - Manual GeoTIFF end-to-end workflow validation on Windows
+- Georeferenced GeoTIFF export for detected flood masks
+- Single-band uint8 GeoTIFF output using 0/255 flood classification values
+- Preservation of CRS, affine transform, raster dimensions, and spatial bounds in exported flood results
+- Automatic GeoTIFF flood mask export during productive batch processing
+- Dedicated GeoTIFF export error handling
+- Automated tests for georeferenced GeoTIFF export
+- 95 automated tests in the complete test suite
 
 ### Improved
 
@@ -92,6 +99,10 @@ All notable changes to this project will be documented in this file.
 - Preserved valid user-selected custom directories across application restarts
 - Added automated test coverage for cross-platform GUI settings behavior
 - 78 automated tests in the complete test suite
+- Extended the GeoTIFF workflow from raster processing to GIS-ready result export
+- Improved interoperability with GIS software through georeferenced flood mask outputs
+- Preserved the existing PNG and JPEG visualization workflow while adding GeoTIFF result export
+- Improved GeoTIFF batch processing with reusable source metadata and no redundant metadata read
 ---
 
 ## [0.7.1] - 2026-07-07

@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-red?logo=opencv)
-![Tests](https://img.shields.io/badge/tests-78%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-95%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -104,6 +104,11 @@ Currently under development for FloodVision v0.8.0:
 - GeoTIFF RGB image adaptation integrated into batch processing
 - Compatible three-band GeoTIFFs processed through the existing water detection pipeline
 - Legacy PNG and JPEG processing workflow preserved
+- Georeferenced GeoTIFF export for detected flood masks
+- Single-band uint8 GeoTIFF output using 0/255 flood classification values
+- Preservation of CRS, affine transform, raster dimensions, and spatial bounds
+- Automatic GeoTIFF flood mask export during batch processing
+- GIS-ready flood detection results for use in QGIS and ArcGIS Pro
 
 ### GeoTIFF Information Panel
 
@@ -163,7 +168,13 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 - Floating-point tolerance tests
 - Cross-platform GUI settings tests
 - Automatic fallback tests for invalid machine-specific directory paths
-- 78 automated tests currently passing
+- Georeferenced GeoTIFF export tests
+- GeoTIFF CRS preservation tests
+- GeoTIFF affine transform preservation tests
+- GeoTIFF raster dimension preservation tests
+- GeoTIFF 0/255 flood mask value tests
+- GeoTIFF export integration tests
+- 95 automated tests currently passing
 
 ---
 

@@ -28,12 +28,11 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
-from src import change_detection, config, mask_generator, visualization
+from src import change_detection, config, geotiff_export, mask_generator, visualization
 from src.change_detection import MaskComparison
+from src.exceptions import GeoTiffPairError
 from src.geotiff_compatibility import GeoTiffCompatibilityValidator
-from src.geotiff_loader import GeoTiffLoader
-from src.geotiff_raster_loader import GeoTiffRasterLoader
-from src.geotiff_image_adapter import GeoTiffImageAdapter
+from src.geotiff_loader import GeoTiffLoader, GeoTiffMetadata
 from src.image_loader import ImageLoader, ImagePair, find_image_pairs
 from src.water_detection import WaterDetectionResult, WaterSegmentationStrategy
 
@@ -197,9 +196,7 @@ class BatchProcessor:
         on_pair_done: Callable[[FloodComparisonResult, int, int], None] | None = None,
         is_cancelled: Callable[[], bool] | None = None,
         geotiff_loader: GeoTiffLoader | None = None,
-        geotiff_validator: GeoTiffCompatibilityValidator | None = None,
-        geotiff_raster_loader: GeoTiffRasterLoader | None = None,
-        geotiff_image_adapter: GeoTiffImageAdapter | None = None,
+        compatibility_validator: GeoTiffCompatibilityValidator | None = None,
     ) -> None:
         """Initialise the batch processor.
 
@@ -219,6 +216,11 @@ class BatchProcessor:
                 it returns ``True`` the batch stops gracefully and returns
                 the records processed so far. ``None`` disables
                 cancellation (pre-v0.6 behaviour).
+            geotiff_loader: Classifies files and reads geospatial
+                metadata; a default instance is created when omitted, so
+                existing callers need no changes.
+            compatibility_validator: Validates GeoTIFF pairs spatially;
+                default instance created when omitted.
         """
         self._loader = loader
         self._detector = detector
@@ -228,9 +230,9 @@ class BatchProcessor:
         self._on_pair_done = on_pair_done
         self._is_cancelled = is_cancelled
         self._geotiff_loader = geotiff_loader or GeoTiffLoader()
-        self._geotiff_validator = geotiff_validator or GeoTiffCompatibilityValidator()
-        self._geotiff_raster_loader = geotiff_raster_loader or GeoTiffRasterLoader()
-        self._geotiff_image_adapter = geotiff_image_adapter or GeoTiffImageAdapter()
+        self._compatibility_validator = (
+            compatibility_validator or GeoTiffCompatibilityValidator()
+        )
 
     def run(self) -> BatchResult:
         """Process all matching image pairs.
@@ -297,6 +299,11 @@ class BatchProcessor:
     def _process_single(self, pair: ImagePair) -> FloodComparisonResult:
         """Process one pair inside its own failure boundary.
 
+        Since v0.8 the pair first passes the geospatial gate
+        (:meth:`_ensure_geospatial_compatibility`); mixed or spatially
+        incompatible GeoTIFF pairs fail here as records, exactly like
+        any other per-pair error.
+
         Catching broad ``Exception`` here is *correct* engineering: the
         batch contract ("one bad pair never kills the run") requires
         converting any per-item error into data. ``logger.exception``
@@ -313,22 +320,11 @@ class BatchProcessor:
         """
         start = time.perf_counter()
         try:
-            is_geotiff = self._validate_geotiff_pair(pair)
-            if is_geotiff:
-                before_image = self._geotiff_image_adapter.to_image(
-                    self._geotiff_raster_loader.load(pair.before_path)
-                )
-                after_image = self._geotiff_image_adapter.to_image(
-                    self._geotiff_raster_loader.load(pair.after_path)
-                )
-            else:
-                before_image = self._loader.load(pair.before_path)
-                after_image = self._loader.load(pair.after_path)
-
-            before = self._detector.detect(before_image)
-            after = self._detector.detect(after_image)
+            geo_metadata = self._ensure_geospatial_compatibility(pair)
+            before = self._detector.detect(self._loader.load(pair.before_path))
+            after = self._detector.detect(self._loader.load(pair.after_path))
             comparison = change_detection.compare_masks(before.mask, after.mask)
-            self._save_products(pair, before, after, comparison)
+            self._save_products(pair, before, after, comparison, geo_metadata)
         except Exception as error:  # noqa: BLE001 -- intentional batch boundary
             elapsed = time.perf_counter() - start
             logger.exception("Processing failed for pair %s", pair.name)
@@ -363,31 +359,71 @@ class BatchProcessor:
             processing_time_seconds=elapsed,
         )
 
-    def _validate_geotiff_pair(self, pair: ImagePair) -> bool:
-        """Reject mixed or spatially incompatible GeoTIFF pairs.
+    def _ensure_geospatial_compatibility(
+        self, pair: ImagePair
+    ) -> GeoTiffMetadata | None:
+        """Gate: reject geospatially unusable pairs before detection.
 
-        Plain TIFF files remain part of the legacy image workflow. A pair in
-        which exactly one file is a georeferenced GeoTIFF is rejected because
-        the two inputs cannot be compared safely under a single spatial model.
+        Classification semantics (mirrored by the integration tests):
+
+        * **Neither** file is a georeferenced GeoTIFF (normal images,
+          plain TIFFs, unreadable files): no gate -- the existing pixel
+          workflow proceeds exactly as before v0.8.
+        * **Exactly one** file is a georeferenced GeoTIFF: the pair is
+          rejected; alignment between a georeferenced and a
+          non-georeferenced file cannot be verified, and silently
+          comparing them would be a wrong result waiting to happen.
+        * **Both** are GeoTIFFs: metadata is read by the loader and
+          compared by the validator; incompatible pairs are rejected
+          with the validator's one-line summary as the reason.
+
+        A *compatible* GeoTIFF pair still continues into the existing
+        Pillow/OpenCV pixel pipeline for detection -- that part is
+        unchanged. Since v0.8's export step, the returned metadata lets
+        the caller additionally write a georeferenced GeoTIFF of the
+        flood result alongside the existing PNG products. The *after*
+        raster's metadata is returned (not *before*): compatibility
+        already guarantees an identical grid, and the flood result is
+        conceptually anchored to the post-event scene.
+
+        Args:
+            pair: The pair to gate.
+
+        Returns:
+            The *after* raster's :class:`~src.geotiff_loader.GeoTiffMetadata`
+            for a compatible GeoTIFF pair, so the caller can export a
+            georeferenced result; ``None`` for an ordinary (non-GeoTIFF)
+            pair, which needs no georeferenced output.
+
+        Raises:
+            GeoTiffPairError: If the pair mixes georeferencing or is
+                spatially incompatible.
+            ImageLoadError: If a file classified as GeoTIFF cannot be
+                read during metadata extraction.
         """
-        before_is_geotiff = self._geotiff_loader.is_geotiff(pair.before_path)
-        after_is_geotiff = self._geotiff_loader.is_geotiff(pair.after_path)
-
-        if before_is_geotiff != after_is_geotiff:
-            raise ValueError(
-                "Mixed image pair is not supported: both files must be GeoTIFFs "
-                "or both must use the legacy image workflow"
+        before_is_geo = self._geotiff_loader.is_geotiff(pair.before_path)
+        after_is_geo = self._geotiff_loader.is_geotiff(pair.after_path)
+        if not before_is_geo and not after_is_geo:
+            return None
+        if before_is_geo != after_is_geo:
+            non_geo_side = "after" if before_is_geo else "before"
+            raise GeoTiffPairError(
+                pair.name,
+                f"mixed georeferencing: the {non_geo_side} file is not a "
+                f"georeferenced GeoTIFF",
             )
-        if not before_is_geotiff:
-            return False
-
-        logger.info("Validating GeoTIFF compatibility for pair %s", pair.name)
+        logger.info("GeoTIFF pair detected: %s", pair.name)
         before_metadata = self._geotiff_loader.read_metadata(pair.before_path)
         after_metadata = self._geotiff_loader.read_metadata(pair.after_path)
-        result = self._geotiff_validator.validate(before_metadata, after_metadata)
+        result = self._compatibility_validator.validate(before_metadata, after_metadata)
         if not result.is_compatible:
-            raise ValueError(f"Incompatible GeoTIFF pair: {result.summary()}")
-        return True
+            raise GeoTiffPairError(pair.name, result.summary())
+        logger.info(
+            "GeoTIFF pair %s is spatially compatible; the flood result will "
+            "be exported as a georeferenced GeoTIFF",
+            pair.name,
+        )
+        return after_metadata
 
     def _save_products(
         self,
@@ -395,10 +431,11 @@ class BatchProcessor:
         before: WaterDetectionResult,
         after: WaterDetectionResult,
         comparison: MaskComparison,
+        geo_metadata: GeoTiffMetadata | None,
     ) -> None:
         """Write all products of one pair into its own output subdirectory.
 
-        Layout (requirement of v0.4)::
+        Layout (requirement of v0.4, ``new_flood_mask.tif`` added in v0.8)::
 
             data/output/<pair-stem>/
                 before_mask.png     binary pre-event water mask
@@ -406,6 +443,7 @@ class BatchProcessor:
                 new_flood_mask.png  red-on-black newly flooded areas
                 overlay.png         AFTER image + semi-transparent red layer
                 comparison.png      four-panel review figure
+                new_flood_mask.tif  georeferenced flood mask (GeoTIFF pairs only)
 
         Figures are saved with ``show=False``: opening dozens of blocking
         matplotlib windows would make batch mode unusable.
@@ -415,6 +453,10 @@ class BatchProcessor:
             before: Detection result of the pre-event image.
             after: Detection result of the post-event image.
             comparison: Mask comparison result.
+            geo_metadata: The *after* raster's metadata for a compatible
+                GeoTIFF pair (triggers the additional georeferenced
+                export below); ``None`` for an ordinary image pair,
+                which leaves the existing PNG-only workflow untouched.
         """
         out_dir = self._output_dir / pair.stem
         new_flood_rgb = mask_generator.colorize_mask(comparison.new_water_mask)
@@ -440,3 +482,8 @@ class BatchProcessor:
             save_path=out_dir / "comparison.png",
             show=False,
         )
+
+        if geo_metadata is not None:
+            geotiff_export.export_flood_mask_geotiff(
+                comparison.new_water_mask, geo_metadata, out_dir / "new_flood_mask.tif"
+            )

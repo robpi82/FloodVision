@@ -79,3 +79,44 @@ class ConfigurationError(FloodVisionError):
     :class:`FloodVisionError` and carry messages that name the exact file,
     key and expected value range.
     """
+
+
+class GeoTiffPairError(FloodVisionError):
+    """Raised when a before/after pair cannot be compared geospatially.
+
+    Covers *mixed* pairs (exactly one georeferenced file) and spatially
+    *incompatible* GeoTIFF pairs. It is raised inside the per-pair batch
+    failure boundary, so it becomes a failed record with a useful reason
+    -- never a crashed batch.
+
+    Attributes:
+        pair_name: Shared filename of the pair.
+        reason: Human-readable rejection reason (e.g. the compatibility
+            validator's one-line summary).
+    """
+
+    def __init__(self, pair_name: str, reason: str) -> None:
+        self.pair_name = pair_name
+        self.reason = reason
+        super().__init__(f"GeoTIFF pair '{pair_name}' rejected: {reason}")
+
+
+class GeoTiffExportError(FloodVisionError):
+    """Raised when a georeferenced GeoTIFF result cannot be written.
+
+    Covers Rasterio/GDAL write failures and filesystem problems (disk
+    full, permission denied). Contract violations of the mask itself
+    (wrong shape or dtype) are a *programmer* error, not a runtime
+    failure, and are raised as plain :class:`ValueError` instead --
+    mirroring how :func:`src.change_detection.compare_masks` separates
+    the two failure classes.
+
+    Attributes:
+        path: The output file that failed to write.
+        reason: Human-readable failure reason.
+    """
+
+    def __init__(self, path: Path, reason: str) -> None:
+        self.path = path
+        self.reason = reason
+        super().__init__(f"Failed to write georeferenced GeoTIFF '{path}': {reason}")
