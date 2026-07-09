@@ -19,3 +19,8 @@ data/output/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Real-world validation data
+real_world_test/
+data/before/real_world_test.tif
+data/after/real_world_test.tif
