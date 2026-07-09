@@ -6,11 +6,20 @@ All notable changes to this project will be documented in this file.
 
 ## [0.9.0] - Unreleased
 
+### Added
+
+- Optional RGB band selection for multi-band GeoTIFF rasters
+- Zero-based raster band indexing
+- Preservation of requested band order during RGB conversion
+- Validation of selected band count
+- Validation of out-of-range band indices
+- Automated tests for GeoTIFF raster band selection
+- 99 automated tests in the complete test suite
+
 ### Planned
 
 - Sentinel-2 imagery support
 - Multispectral GeoTIFF raster loading
-- Raster band selection
 - Validation of multispectral band configurations
 - Sentinel-2 band metadata handling
 - Support for non-RGB raster workflows
@@ -19,7 +28,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## ## [0.8.0] - 2026-07-09
+## [0.8.0] - 2026-07-09
 
 ### Added
 
@@ -35,7 +44,6 @@ All notable changes to this project will be documented in this file.
 - Affine transform metadata extraction
 - Robust error handling for invalid and corrupted raster files
 - Initial automated test infrastructure using pytest
-- 13 automated tests for the GeoTIFF metadata loader
 - Separate development dependencies via `requirements-dev.txt`
 - GeoTIFF pair compatibility validation
 - CRS compatibility checks
@@ -44,30 +52,22 @@ All notable changes to this project will be documented in this file.
 - Raster bounds compatibility checks
 - Affine transform compatibility checks
 - Structured compatibility results and mismatch reporting
-- 22 automated tests for GeoTIFF pair compatibility
-- 35 automated tests in the complete test suite
 - GeoTIFF compatibility validation integrated into batch processing
 - Automatic spatial compatibility checks before GeoTIFF pair processing
 - Safe rejection of incompatible GeoTIFF pairs
 - Safe rejection of mixed image and GeoTIFF pairs
 - Batch processing continuation after GeoTIFF compatibility failures
-- 5 automated tests for GeoTIFF batch integration
-- 40 automated tests in the complete test suite
 - GeoTIFF raster data loader
 - Raster pixel data loading using Rasterio
 - Band-first NumPy array representation
 - Single-band and multi-band raster support
 - NoData-aware raster loading
 - Valid-data mask generation
-- Automated tests for GeoTIFF raster loading
-- 48 automated tests in the complete test suite
 - Productive GeoTIFF raster workflow integration
 - Automatic routing between legacy image and GeoTIFF processing paths
 - GeoTIFF raster loading integrated into batch processing
 - GeoTIFF image adapter integrated into the processing pipeline
 - Compatible three-band GeoTIFF processing through the existing water detection pipeline
-- Automated tests for the productive GeoTIFF processing path
-- 59 automated tests in the complete test suite
 - GeoTIFF Information Panel in the desktop GUI
 - Display of CRS and EPSG information
 - Display of raster dimensions and band count
@@ -77,7 +77,6 @@ All notable changes to this project will be documented in this file.
 - Automatic GeoTIFF metadata display when browsing processed results
 - Neutral information state for non-georeferenced images
 - GUI tests using pytest-qt
-- 63 automated tests in the complete test suite
 - Synthetic GeoTIFF test data generator for reproducible end-to-end testing
 - Manual GeoTIFF end-to-end workflow validation on Windows
 - Georeferenced GeoTIFF export for detected flood masks
@@ -113,11 +112,16 @@ All notable changes to this project will be documented in this file.
 - Added automatic fallback to project-relative default directories when stored paths do not exist on the current system
 - Preserved valid user-selected custom directories across application restarts
 - Added automated test coverage for cross-platform GUI settings behavior
-- 78 automated tests in the complete test suite
 - Extended the GeoTIFF workflow from raster processing to GIS-ready result export
 - Improved interoperability with GIS software through georeferenced flood mask outputs
 - Preserved the existing PNG and JPEG visualization workflow while adding GeoTIFF result export
 - Improved GeoTIFF batch processing with reusable source metadata and no redundant metadata read
+
+### Fixed
+
+- Fixed GeoTIFF Information Panel crash caused by an outdated metadata attribute name
+- Updated GeoTIFF Information Panel tests to use the current `pixel_size` metadata field
+
 ---
 
 ## [0.7.1] - 2026-07-07
@@ -165,8 +169,6 @@ All notable changes to this project will be documented in this file.
 
 - Improved error handling
 - More stable batch processing
-- Fixed GeoTIFF Information Panel crash caused by an outdated metadata attribute name
-- Updated GeoTIFF Information Panel tests to use the current pixel_size metadata field
 
 ---
 
