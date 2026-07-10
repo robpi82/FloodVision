@@ -4,7 +4,7 @@
 
 # 🌊 FloodVision
 
-![Stable Version](https://img.shields.io/badge/stable-v0.7.1-red)
+![Stable Version](https://img.shields.io/badge/stable-v0.8.0-red)
 ![Development Version](https://img.shields.io/badge/development-v0.9.0-yellow)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
@@ -17,7 +17,7 @@ Professional desktop application for flood detection using computer vision, imag
 
 FloodVision compares two images of the same location ("Before" and "After") and automatically detects newly flooded areas.
 
-The project is currently being extended with GeoTIFF support, GIS raster workflows, and visible geospatial metadata integration in the desktop GUI.
+The current stable release provides a complete GeoTIFF and GIS raster processing workflow. Development is now focused on multispectral raster processing and Sentinel-2 support.
 
 ---
 
@@ -58,7 +58,7 @@ The project is currently being extended with GeoTIFF support, GIS raster workflo
 
 ### GeoTIFF & GIS Support
 
-Currently under development for FloodVision v0.8.0:
+Available since FloodVision v0.8.0:
 
 - Rasterio integration
 - GeoTIFF file detection and validation
@@ -110,9 +110,21 @@ Currently under development for FloodVision v0.8.0:
 - Automatic GeoTIFF flood mask export during batch processing
 - GIS-ready flood detection results for use in QGIS and ArcGIS Pro
 
+### Multispectral Raster Support
+
+Currently under development for FloodVision v0.9.0:
+
+- Multispectral GeoTIFF support
+- Configurable raster band selection
+- Selection of arbitrary source bands for RGB image generation
+- Validation of multispectral band configurations
+- Preservation of existing three-band RGB workflows
+- Foundation for Sentinel-2 imagery support
+- Foundation for future non-RGB raster processing workflows
+
 ### GeoTIFF Information Panel
 
-FloodVision now provides visible geospatial metadata directly in the desktop application.
+FloodVision provides visible geospatial metadata directly in the desktop application.
 
 When browsing a processed GeoTIFF result, the GeoTIFF Information Panel automatically displays:
 
@@ -174,7 +186,7 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 - GeoTIFF raster dimension preservation tests
 - GeoTIFF 0/255 flood mask value tests
 - GeoTIFF export integration tests
-- 95 automated tests currently passing
+- Multispectral band selection tests
 
 ---
 
@@ -244,12 +256,6 @@ Run the complete automated test suite:
 
 ```bash
 python -m pytest -v
-```
-
-Current development status:
-
-```text
-95 tests passed
 ```
 
 ---
@@ -341,76 +347,55 @@ FloodVision
 
 ## Stable Release
 
-### Version 0.7.1
+### Version 0.8.0
 
 The current stable release includes:
 
-- Professional desktop GUI
-- Drag & Drop folder support
-- Folder path input
-- Improved image navigation
-- Previous / Next controls
-- Zoom controls
-- Fit Image and Actual Size
-- Statistics panel
-- Live logging
-- Progress tracking
-- CSV export
-- Batch processing
-- Overlay visualization
-- Automatic report generation
-- Automatic image pairing
-- Robust error handling
-- Improved GUI usability
+- Complete GeoTIFF support foundation
+- Rasterio integration
+- GeoTIFF metadata extraction
+- Coordinate Reference System (CRS) and EPSG extraction
+- Raster bounds and pixel resolution extraction
+- GeoTIFF pair compatibility validation
+- Automatic spatial compatibility checks
+- GeoTIFF raster data loading
+- Single-band and multi-band raster support
+- NoData-aware raster processing
+- GeoTIFF image adapter
+- Three-band raster to RGB image conversion
+- Productive GeoTIFF processing pipeline
+- GeoTIFF Information Panel
+- Automatic geospatial metadata display
+- Georeferenced GeoTIFF flood mask export
+- Preservation of CRS, affine transform, raster dimensions, and spatial bounds
+- GIS-ready flood detection results
+- Automated GeoTIFF testing
+- Real-world GeoTIFF validation tooling
+- Existing PNG and JPEG workflows preserved
 
 ---
 
 ## Current Development
 
-### Version 0.8.0
+### Version 0.9.0
+
+**Sentinel-2 & Multispectral Raster Foundation**
 
 Currently implemented on the development branch:
 
-- Rasterio integration
-- GeoTIFF metadata loader
-- GeoTIFF file validation
-- CRS and EPSG extraction
-- Raster bounds extraction
-- Pixel resolution extraction
-- Raster band and data type information
-- NoData value extraction
-- Affine transform metadata extraction
-- GeoTIFF pair compatibility validation
-- Structured compatibility results
-- GeoTIFF compatibility validation integrated into batch processing
-- Automatic spatial compatibility checks before GeoTIFF pair processing
-- Safe handling of incompatible GeoTIFF pairs
-- Safe handling of mixed image and GeoTIFF pairs
-- Batch processing continuation after compatibility failures
-- GeoTIFF raster data loader
-- Raster pixel data loading
-- Band-first NumPy array representation
-- Single-band and multi-band raster support
-- NoData-aware valid-data mask generation
-- GeoTIFF image adapter
-- Three-band raster to RGB image conversion
-- Automatic raster value scaling to uint8
-- NoData-aware image conversion
-- Validation of supported GeoTIFF band configurations
-- Productive GeoTIFF raster workflow integrated into batch processing
-- Automatic selection of legacy image or GeoTIFF processing paths
-- GeoTIFF raster loading and RGB adaptation before water detection
-- Compatible three-band GeoTIFF processing through the existing detection pipeline
-- Existing PNG and JPEG processing workflow preserved
-- GeoTIFF Information Panel integrated into the desktop GUI
-- Automatic geospatial metadata display when browsing results
-- CRS and EPSG display
-- Raster dimensions and band count display
-- Pixel resolution display
-- NoData display
-- Raster bounds display
-- Automated GUI testing with pytest-qt
-- 95 automated tests
+- Multispectral GeoTIFF band selection
+- Configurable source band selection
+- Validation of selected raster bands
+- Support for selecting arbitrary raster bands for RGB image generation
+- Preservation of existing three-band RGB workflows
+
+Planned development:
+
+- Extended multispectral GeoTIFF raster loading
+- Sentinel-2 imagery support
+- Sentinel-2 band metadata handling
+- Support for non-RGB raster workflows
+- Additional automated tests for multispectral raster processing
 
 ---
 
@@ -418,7 +403,9 @@ Currently implemented on the development branch:
 
 ### Version 0.8.0
 
-Completed development steps:
+**GeoTIFF & GIS Raster Foundation — Released**
+
+Completed development:
 
 - GeoTIFF support foundation
 - Rasterio integration
@@ -436,27 +423,26 @@ Completed development steps:
 - GIS-ready single-band flood classification output
 - Automated GeoTIFF export tests
 - Manual end-to-end testing with synthetic GeoTIFF datasets
+- Real-world GeoTIFF validation tooling
 - Full regression testing
-
-Remaining development steps:
-
-- Manual testing with real-world GeoTIFF datasets
-- Documentation finalization
-- Version 0.8.0 release
 
 ### Version 0.9.0
 
-**Sentinel-2 & Multispectral Raster Foundation**
+**Sentinel-2 & Multispectral Raster Foundation — In Development**
+
+Currently implemented:
+
+- Multispectral GeoTIFF band selection
+- Configurable raster band selection
+- Validation of multispectral band configurations
+- Preservation of existing RGB and GeoTIFF workflows
 
 Planned development:
 
 - Sentinel-2 imagery support
-- Multispectral GeoTIFF raster loading
-- Raster band selection
-- Validation of multispectral band configurations
+- Extended multispectral GeoTIFF raster loading
 - Sentinel-2 band metadata handling
 - Support for non-RGB raster workflows
-- Preservation of existing RGB and GeoTIFF workflows
 - Automated tests for multispectral raster processing
 
 ### Version 0.10.0
@@ -494,6 +480,7 @@ Planned development:
 - Deep Learning models
 - U-Net integration
 - PyTorch support
+
 ---
 
 ## Author
