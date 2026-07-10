@@ -43,6 +43,11 @@ SENTINEL2_BANDS: Final[dict[str, Sentinel2Band]] = {
         name="Red",
         resolution_m=10,
     ),
+    "B05": Sentinel2Band(
+        code="B05",
+        name="Vegetation Red Edge",
+        resolution_m=20,
+    ),
     "B08": Sentinel2Band(
         code="B08",
         name="Near Infrared",
