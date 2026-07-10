@@ -19,16 +19,30 @@ All notable changes to this project will be documented in this file.
 - Validation of band count, integer types, and non-negative band indices
 - `MULTISPECTRAL_RGB_BANDS` configuration constant
 - Automated tests for multispectral band configuration
-- 111 automated tests in the complete test suite
+- Productive multispectral GeoTIFF processing in the batch workflow
+- Automatic loading of multi-band GeoTIFF raster data for water detection
+- Integration of configured RGB band selection into productive flood processing
+- Dedicated GeoTIFF raster loading and RGB conversion in the batch pipeline
+- Automated integration test for four-band GeoTIFF processing with selected RGB bands
+- 112 automated tests in the complete test suite
+
+### Improved
+
+- Extended multispectral support from isolated raster conversion to productive batch processing
+- Preserved existing PNG and JPEG processing workflows
+- Preserved existing three-band GeoTIFF processing workflows
+- Improved separation between standard image loading and GeoTIFF raster loading
+- Improved test coverage for multispectral GeoTIFF processing
 
 ### Planned
 
 - Sentinel-2 imagery support
-- Multispectral GeoTIFF raster loading
+- Extended multispectral GeoTIFF raster loading
 - Sentinel-2 band metadata handling
 - Support for non-RGB raster workflows
-- Preservation of existing RGB and GeoTIFF processing workflows
-- Automated tests for multispectral raster processing
+- Automated tests for additional multispectral raster processing scenarios
+
+---
 
 ---
 

@@ -78,6 +78,7 @@ def write_geotiff(
     array = np.full((HEIGHT, width, 3), LAND_RGB, dtype=np.uint8)
     if water:
         array[10:38, 20 : min(50, width)] = WATER_RGB
+
     with rasterio.open(
         path,
         "w",
@@ -99,7 +100,11 @@ class ForbiddenValidator(GeoTiffCompatibilityValidator):
     images, plain TIFFs); any call is an integration-routing bug.
     """
 
-    def validate(self, before: GeoTiffMetadata, after: GeoTiffMetadata):  # noqa: D102
+    def validate(
+        self,
+        before: GeoTiffMetadata,
+        after: GeoTiffMetadata,
+    ):  # noqa: D102
         raise AssertionError(
             "Compatibility validation must not run for non-GeoTIFF pairs"
         )
@@ -108,17 +113,20 @@ class ForbiddenValidator(GeoTiffCompatibilityValidator):
 def run_batch(
     tmp_path: Path,
     validator: GeoTiffCompatibilityValidator | None = None,
+    multispectral_rgb_bands: tuple[int, int, int] = (0, 1, 2),
 ) -> tuple[BatchResult, Path]:
     """Run a real batch over ``tmp_path``'s before/after directories.
 
     Args:
         tmp_path: Base directory containing ``before/`` and ``after/``.
         validator: Optional validator override (DI seam).
+        multispectral_rgb_bands: RGB band selection for multispectral rasters.
 
     Returns:
         The batch result and the output directory.
     """
     output_dir = tmp_path / "output"
+
     processor = BatchProcessor(
         loader=ImageLoader(),
         detector=HSVWaterDetector(),
@@ -126,7 +134,9 @@ def run_batch(
         after_dir=tmp_path / "after",
         output_dir=output_dir,
         compatibility_validator=validator,
+        multispectral_rgb_bands=multispectral_rgb_bands,
     )
+
     return processor.run(), output_dir
 
 
@@ -158,25 +168,39 @@ class TestNormalImagePairs:
     """PNG/JPG pairs keep the pre-v0.8 behaviour, untouched by the gate."""
 
     def test_png_pair_processes_and_never_touches_validation(
-        self, pair_dirs: Path
+        self,
+        pair_dirs: Path,
     ) -> None:
         """A PNG pair succeeds; the injected validator proves no geo call."""
         write_image(pair_dirs / "before" / "site.png", water=False)
         write_image(pair_dirs / "after" / "site.png", water=True)
-        result, output_dir = run_batch(pair_dirs, validator=ForbiddenValidator())
+
+        result, output_dir = run_batch(
+            pair_dirs,
+            validator=ForbiddenValidator(),
+        )
 
         record = record_by_name(result, "site.png")
+
         assert record.status is ProcessingStatus.SUCCESS
         assert record.new_flood_pixels and record.new_flood_pixels > 0
         assert (output_dir / "site" / "overlay.png").is_file()
 
-    def test_plain_tiff_pair_uses_existing_workflow(self, pair_dirs: Path) -> None:
+    def test_plain_tiff_pair_uses_existing_workflow(
+        self,
+        pair_dirs: Path,
+    ) -> None:
         """Plain TIFFs are *not* GeoTIFFs: normal pipeline, no validation."""
         write_image(pair_dirs / "before" / "site.tif", water=False)
         write_image(pair_dirs / "after" / "site.tif", water=True)
-        result, output_dir = run_batch(pair_dirs, validator=ForbiddenValidator())
+
+        result, output_dir = run_batch(
+            pair_dirs,
+            validator=ForbiddenValidator(),
+        )
 
         record = record_by_name(result, "site.tif")
+
         assert record.status is ProcessingStatus.SUCCESS
         assert (output_dir / "site" / "new_flood_mask.png").is_file()
 
@@ -188,28 +212,140 @@ class TestCompatibleGeoTiffPair:
     """Aligned GeoTIFF pairs pass the gate into the existing pipeline."""
 
     def test_compatible_pair_is_validated_and_processed(
-        self, pair_dirs: Path, caplog: pytest.LogCaptureFixture
+        self,
+        pair_dirs: Path,
+        caplog: pytest.LogCaptureFixture,
     ) -> None:
         """Gate runs, pair proceeds, a georeferenced flood mask is written."""
         caplog.set_level("INFO")
-        write_geotiff(pair_dirs / "before" / "flood.tif", water=False)
-        write_geotiff(pair_dirs / "after" / "flood.tif", water=True)
+
+        write_geotiff(
+            pair_dirs / "before" / "flood.tif",
+            water=False,
+        )
+        write_geotiff(
+            pair_dirs / "after" / "flood.tif",
+            water=True,
+        )
+
         result, output_dir = run_batch(pair_dirs)
 
         record = record_by_name(result, "flood.tif")
+
         assert record.status is ProcessingStatus.SUCCESS
         assert record.error_message is None
         assert record.new_flood_pixels and record.new_flood_pixels > 0
-        assert any("GeoTIFF pair detected" in r.message for r in caplog.records)
-        # Since v0.8's export step: PNG products are unchanged, and the
-        # flood mask is additionally written as a georeferenced GeoTIFF.
+        assert any(
+            "GeoTIFF pair detected" in r.message
+            for r in caplog.records
+        )
+
         products = output_dir / "flood"
+
         assert (products / "overlay.png").is_file()
+
         geo_output = products / "new_flood_mask.tif"
+
         assert geo_output.is_file()
+
         with rasterio.open(geo_output) as dataset:
             assert dataset.crs == UTM32
             assert (dataset.width, dataset.height) == (WIDTH, HEIGHT)
+
+
+# ---------------------------------------------------------------------------
+# Multispectral GeoTIFF pair (v0.9)
+# ---------------------------------------------------------------------------
+class TestMultispectralGeoTiffPair:
+    """Multiband GeoTIFF pairs use configured RGB band selection."""
+
+    def test_four_band_pair_is_processed_with_selected_rgb_bands(
+        self,
+        pair_dirs: Path,
+    ) -> None:
+        """Configured band order is used for multispectral processing."""
+        before = np.zeros(
+            (4, HEIGHT, WIDTH),
+            dtype=np.uint8,
+        )
+        after = np.zeros(
+            (4, HEIGHT, WIDTH),
+            dtype=np.uint8,
+        )
+
+        # Source bands are stored in BGR-like order.
+        # Selecting bands (2, 1, 0) reconstructs the expected RGB image.
+        before[0] = LAND_RGB[2]
+        before[1] = LAND_RGB[1]
+        before[2] = LAND_RGB[0]
+
+        after[0] = LAND_RGB[2]
+        after[1] = LAND_RGB[1]
+        after[2] = LAND_RGB[0]
+
+        # Add water using the same reversed source-band order.
+        after[0, 10:38, 20:50] = WATER_RGB[2]
+        after[1, 10:38, 20:50] = WATER_RGB[1]
+        after[2, 10:38, 20:50] = WATER_RGB[0]
+
+        # Fourth band contains unrelated data.
+        before[3] = 200
+        after[3] = 200
+
+        for path, data in (
+            (
+                pair_dirs / "before" / "multispectral.tif",
+                before,
+            ),
+            (
+                pair_dirs / "after" / "multispectral.tif",
+                after,
+            ),
+        ):
+            with rasterio.open(
+                path,
+                "w",
+                driver="GTiff",
+                width=WIDTH,
+                height=HEIGHT,
+                count=4,
+                dtype="uint8",
+                crs=UTM32,
+                transform=from_origin(
+                    ORIGIN[0],
+                    ORIGIN[1],
+                    PIXEL,
+                    PIXEL,
+                ),
+            ) as dataset:
+                dataset.write(data)
+
+        result, output_dir = run_batch(
+            pair_dirs,
+            multispectral_rgb_bands=(2, 1, 0),
+        )
+
+        record = record_by_name(
+            result,
+            "multispectral.tif",
+        )
+
+        assert record.status is ProcessingStatus.SUCCESS
+        assert record.error_message is None
+        assert record.new_flood_pixels
+        assert record.new_flood_pixels > 0
+
+        assert (
+            output_dir
+            / "multispectral"
+            / "overlay.png"
+        ).is_file()
+
+        assert (
+            output_dir
+            / "multispectral"
+            / "new_flood_mask.tif"
+        ).is_file()
 
 
 # ---------------------------------------------------------------------------
@@ -218,41 +354,73 @@ class TestCompatibleGeoTiffPair:
 class TestIncompatibleGeoTiffPairs:
     """Spatially incompatible pairs fail as records, before detection."""
 
-    def test_crs_mismatch_is_rejected_before_detection(self, pair_dirs: Path) -> None:
+    def test_crs_mismatch_is_rejected_before_detection(
+        self,
+        pair_dirs: Path,
+    ) -> None:
         """Different CRS -> failed record naming CRS, no products written."""
-        write_geotiff(pair_dirs / "before" / "site.tif", water=False)
-        write_geotiff(pair_dirs / "after" / "site.tif", water=True, crs="EPSG:4326")
+        write_geotiff(
+            pair_dirs / "before" / "site.tif",
+            water=False,
+        )
+        write_geotiff(
+            pair_dirs / "after" / "site.tif",
+            water=True,
+            crs="EPSG:4326",
+        )
+
         result, output_dir = run_batch(pair_dirs)
 
         record = record_by_name(result, "site.tif")
+
         assert record.status is ProcessingStatus.FAILED
         assert record.error_message is not None
         assert "CRS" in record.error_message
         assert record.water_after_percent is None
-        assert not (output_dir / "site").exists()  # stopped pre-pipeline
+        assert not (output_dir / "site").exists()
 
-    def test_dimension_mismatch_is_rejected(self, pair_dirs: Path) -> None:
+    def test_dimension_mismatch_is_rejected(
+        self,
+        pair_dirs: Path,
+    ) -> None:
         """Different widths -> failed record naming the width mismatch."""
-        write_geotiff(pair_dirs / "before" / "site.tif", water=False)
-        write_geotiff(pair_dirs / "after" / "site.tif", water=True, width=128)
+        write_geotiff(
+            pair_dirs / "before" / "site.tif",
+            water=False,
+        )
+        write_geotiff(
+            pair_dirs / "after" / "site.tif",
+            water=True,
+            width=128,
+        )
+
         result, output_dir = run_batch(pair_dirs)
 
         record = record_by_name(result, "site.tif")
+
         assert record.status is ProcessingStatus.FAILED
         assert "width" in (record.error_message or "")
         assert not (output_dir / "site").exists()
 
-    def test_shifted_origin_is_rejected(self, pair_dirs: Path) -> None:
+    def test_shifted_origin_is_rejected(
+        self,
+        pair_dirs: Path,
+    ) -> None:
         """A shifted raster origin -> failed record naming the origin."""
-        write_geotiff(pair_dirs / "before" / "site.tif", water=False)
+        write_geotiff(
+            pair_dirs / "before" / "site.tif",
+            water=False,
+        )
         write_geotiff(
             pair_dirs / "after" / "site.tif",
             water=True,
             origin=(ORIGIN[0] + 100.0, ORIGIN[1]),
         )
+
         result, _ = run_batch(pair_dirs)
 
         record = record_by_name(result, "site.tif")
+
         assert record.status is ProcessingStatus.FAILED
         assert "origin" in (record.error_message or "")
 
@@ -265,22 +433,36 @@ class TestMixedPairs:
 
     @pytest.mark.parametrize("geo_side", ["before", "after"])
     def test_mixed_pair_is_rejected_with_reason(
-        self, pair_dirs: Path, geo_side: str
+        self,
+        pair_dirs: Path,
+        geo_side: str,
     ) -> None:
         """PNG+GeoTIFF in either order fails with a 'mixed' reason."""
-        # A shared filename is required for pairing; .tif on both sides,
-        # but only one side carries georeferencing.
         if geo_side == "before":
-            write_geotiff(pair_dirs / "before" / "site.tif", water=False)
-            write_image(pair_dirs / "after" / "site.tif", water=True)
+            write_geotiff(
+                pair_dirs / "before" / "site.tif",
+                water=False,
+            )
+            write_image(
+                pair_dirs / "after" / "site.tif",
+                water=True,
+            )
             non_geo_side = "after"
         else:
-            write_image(pair_dirs / "before" / "site.tif", water=False)
-            write_geotiff(pair_dirs / "after" / "site.tif", water=True)
+            write_image(
+                pair_dirs / "before" / "site.tif",
+                water=False,
+            )
+            write_geotiff(
+                pair_dirs / "after" / "site.tif",
+                water=True,
+            )
             non_geo_side = "before"
+
         result, output_dir = run_batch(pair_dirs)
 
         record = record_by_name(result, "site.tif")
+
         assert record.status is ProcessingStatus.FAILED
         assert "mixed georeferencing" in (record.error_message or "")
         assert non_geo_side in (record.error_message or "")
@@ -294,18 +476,39 @@ class TestCorruptionAndContinuation:
     """One bad pair never kills the batch -- the critical integration test."""
 
     def test_batch_continues_after_corrupt_and_incompatible_pairs(
-        self, pair_dirs: Path
+        self,
+        pair_dirs: Path,
     ) -> None:
         """Corrupt pair fails, incompatible pair fails, valid pair succeeds."""
-        # Pair 1: corrupted TIFF (classified non-geo, fails in PIL load).
-        (pair_dirs / "before" / "a_corrupt.tif").write_bytes(b"NOT A RASTER")
-        write_image(pair_dirs / "after" / "a_corrupt.tif", water=True)
-        # Pair 2: incompatible GeoTIFF pair (CRS mismatch).
-        write_geotiff(pair_dirs / "before" / "b_geo.tif", water=False)
-        write_geotiff(pair_dirs / "after" / "b_geo.tif", water=True, crs="EPSG:4326")
-        # Pair 3: perfectly valid PNG pair.
-        write_image(pair_dirs / "before" / "c_ok.png", water=False)
-        write_image(pair_dirs / "after" / "c_ok.png", water=True)
+        (pair_dirs / "before" / "a_corrupt.tif").write_bytes(
+            b"NOT A RASTER"
+        )
+
+        write_image(
+            pair_dirs / "after" / "a_corrupt.tif",
+            water=True,
+        )
+
+        write_geotiff(
+            pair_dirs / "before" / "b_geo.tif",
+            water=False,
+        )
+
+        write_geotiff(
+            pair_dirs / "after" / "b_geo.tif",
+            water=True,
+            crs="EPSG:4326",
+        )
+
+        write_image(
+            pair_dirs / "before" / "c_ok.png",
+            water=False,
+        )
+
+        write_image(
+            pair_dirs / "after" / "c_ok.png",
+            water=True,
+        )
 
         result, output_dir = run_batch(pair_dirs)
 
@@ -313,14 +516,30 @@ class TestCorruptionAndContinuation:
         assert len(result.failed) == 2
         assert len(result.successful) == 1
 
-        corrupt = record_by_name(result, "a_corrupt.tif")
+        corrupt = record_by_name(
+            result,
+            "a_corrupt.tif",
+        )
+
         assert corrupt.status is ProcessingStatus.FAILED
         assert corrupt.error_message is not None
 
-        incompatible = record_by_name(result, "b_geo.tif")
+        incompatible = record_by_name(
+            result,
+            "b_geo.tif",
+        )
+
         assert incompatible.status is ProcessingStatus.FAILED
         assert "CRS" in (incompatible.error_message or "")
 
-        ok = record_by_name(result, "c_ok.png")
+        ok = record_by_name(
+            result,
+            "c_ok.png",
+        )
+
         assert ok.status is ProcessingStatus.SUCCESS
-        assert (output_dir / "c_ok" / "comparison.png").is_file()
+        assert (
+            output_dir
+            / "c_ok"
+            / "comparison.png"
+        ).is_file()

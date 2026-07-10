@@ -389,17 +389,22 @@ Currently implemented on the development branch:
 - User-configurable multispectral RGB band selection via `config.yaml`
 - Validation of multispectral RGB band configurations
 - Validation of band count, integer types, and non-negative band indices
-- Preservation of existing three-band RGB workflows
-- 111 automated tests currently passing
+- Productive multispectral GeoTIFF processing in the batch workflow
+- Automatic multi-band GeoTIFF raster loading for water detection
+- Integration of configured RGB band selection into productive flood processing
+- Preservation of existing PNG, JPEG, and three-band GeoTIFF workflows
+- Automated integration testing for four-band GeoTIFF processing
+- 112 automated tests currently passing
 
 Planned development:
 
-- Extended multispectral GeoTIFF raster loading
 - Sentinel-2 imagery support
+- Extended multispectral GeoTIFF raster loading
 - Sentinel-2 band metadata handling
 - Support for non-RGB raster workflows
 - Additional automated tests for multispectral raster processing
 
+---
 ---
 
 ## Roadmap
@@ -440,8 +445,12 @@ Currently implemented on the development branch:
 - User-configurable RGB band selection via `config.yaml`
 - Validation of multispectral band configurations
 - Validation of band count, integer types, and non-negative band indices
-- Preservation of existing RGB and GeoTIFF workflows
-- 111 automated tests
+- Productive multispectral GeoTIFF processing in the batch workflow
+- Automatic multi-band GeoTIFF raster loading for water detection
+- Integration of configured RGB band selection into productive flood processing
+- Preservation of existing PNG, JPEG, and three-band GeoTIFF workflows
+- Automated integration testing for four-band GeoTIFF processing
+- 112 automated tests
 
 Planned development:
 
@@ -449,7 +458,8 @@ Planned development:
 - Extended multispectral GeoTIFF raster loading
 - Sentinel-2 band metadata handling
 - Support for non-RGB raster workflows
-- Automated tests for multispectral raster processing
+- Additional automated tests for multispectral raster processing
+
 
 ### Version 0.10.0
 

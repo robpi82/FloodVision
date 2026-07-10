@@ -32,7 +32,9 @@ from src import change_detection, config, geotiff_export, mask_generator, visual
 from src.change_detection import MaskComparison
 from src.exceptions import GeoTiffPairError
 from src.geotiff_compatibility import GeoTiffCompatibilityValidator
+from src.geotiff_image_adapter import GeoTiffImageAdapter
 from src.geotiff_loader import GeoTiffLoader, GeoTiffMetadata
+from src.geotiff_raster_loader import GeoTiffRasterLoader
 from src.image_loader import ImageLoader, ImagePair, find_image_pairs
 from src.water_detection import WaterDetectionResult, WaterSegmentationStrategy
 
@@ -197,6 +199,9 @@ class BatchProcessor:
         is_cancelled: Callable[[], bool] | None = None,
         geotiff_loader: GeoTiffLoader | None = None,
         compatibility_validator: GeoTiffCompatibilityValidator | None = None,
+        geotiff_raster_loader: GeoTiffRasterLoader | None = None,
+        geotiff_image_adapter: GeoTiffImageAdapter | None = None,
+        multispectral_rgb_bands: tuple[int, int, int] = config.MULTISPECTRAL_RGB_BANDS,
     ) -> None:
         """Initialise the batch processor.
 
@@ -231,8 +236,11 @@ class BatchProcessor:
         self._is_cancelled = is_cancelled
         self._geotiff_loader = geotiff_loader or GeoTiffLoader()
         self._compatibility_validator = (
-            compatibility_validator or GeoTiffCompatibilityValidator()
+                compatibility_validator or GeoTiffCompatibilityValidator()
         )
+        self._geotiff_raster_loader = geotiff_raster_loader or GeoTiffRasterLoader()
+        self._geotiff_image_adapter = geotiff_image_adapter or GeoTiffImageAdapter()
+        self._multispectral_rgb_bands = multispectral_rgb_bands
 
     def run(self) -> BatchResult:
         """Process all matching image pairs.
@@ -296,6 +304,27 @@ class BatchProcessor:
         except Exception:  # noqa: BLE001 -- observer isolation boundary
             logger.exception("on_pair_done observer raised; batch continues")
 
+    def _load_detection_image(
+            self,
+            path: Path,
+            is_geotiff: bool,
+    ):
+        """Load an image for water detection.
+
+        GeoTIFF rasters are loaded with Rasterio and converted to RGB using
+        the configured multispectral band selection. Ordinary image files
+        continue to use the existing ImageLoader workflow.
+        """
+        if not is_geotiff:
+            return self._loader.load(path)
+
+        raster = self._geotiff_raster_loader.load(path)
+
+        return self._geotiff_image_adapter.to_image(
+            raster,
+            bands=self._multispectral_rgb_bands,
+        )
+
     def _process_single(self, pair: ImagePair) -> FloodComparisonResult:
         """Process one pair inside its own failure boundary.
 
@@ -321,9 +350,24 @@ class BatchProcessor:
         start = time.perf_counter()
         try:
             geo_metadata = self._ensure_geospatial_compatibility(pair)
-            before = self._detector.detect(self._loader.load(pair.before_path))
-            after = self._detector.detect(self._loader.load(pair.after_path))
-            comparison = change_detection.compare_masks(before.mask, after.mask)
+            is_geotiff = geo_metadata is not None
+
+            before_image = self._load_detection_image(
+                pair.before_path,
+                is_geotiff,
+            )
+            after_image = self._load_detection_image(
+                pair.after_path,
+                is_geotiff,
+            )
+
+            before = self._detector.detect(before_image)
+            after = self._detector.detect(after_image)
+
+            comparison = change_detection.compare_masks(
+                before.mask,
+                after.mask,
+            )
             self._save_products(pair, before, after, comparison, geo_metadata)
         except Exception as error:  # noqa: BLE001 -- intentional batch boundary
             elapsed = time.perf_counter() - start
