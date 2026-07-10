@@ -26,6 +26,11 @@ water_detection:
   hsv_lower: [85, 40, 40]
   hsv_upper: [135, 255, 255]
 
+multispectral:
+  # Zero-based raster band indices used for RGB visualization.
+  # The order defines the output channels: Red, Green, Blue.
+  rgb_bands: [0, 1, 2]
+
 overlay:
   # Opacity of the semi-transparent layers, 0.0 (invisible) .. 1.0 (opaque).
   alpha: 0.45         # blue water overlay (single-image products)

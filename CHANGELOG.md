@@ -14,13 +14,17 @@ All notable changes to this project will be documented in this file.
 - Validation of selected band count
 - Validation of out-of-range band indices
 - Automated tests for GeoTIFF raster band selection
-- 99 automated tests in the complete test suite
+- User-configurable multispectral RGB band selection via `config.yaml`
+- Validation of multispectral RGB band configuration
+- Validation of band count, integer types, and non-negative band indices
+- `MULTISPECTRAL_RGB_BANDS` configuration constant
+- Automated tests for multispectral band configuration
+- 111 automated tests in the complete test suite
 
 ### Planned
 
 - Sentinel-2 imagery support
 - Multispectral GeoTIFF raster loading
-- Validation of multispectral band configurations
 - Sentinel-2 band metadata handling
 - Support for non-RGB raster workflows
 - Preservation of existing RGB and GeoTIFF processing workflows

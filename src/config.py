@@ -79,13 +79,52 @@ OVERLAY_COLOR_RGB: Final[tuple[int, int, int]] = (0, 110, 255)
 NEW_FLOOD_COLOR_RGB: Final[tuple[int, int, int]] = (230, 40, 40)
 
 # ---------------------------------------------------------------------------
-# YAML loading & validation helpers (private)
+# YAML loading & validation helpers
 # ---------------------------------------------------------------------------
 _VALID_LOG_LEVELS: Final[frozenset[str]] = frozenset(
     {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
 )
 _HSV_MAXIMA: Final[tuple[int, int, int]] = (179, 255, 255)
 _HSV_CHANNELS: Final[tuple[str, str, str]] = ("H", "S", "V")
+
+
+def validate_rgb_bands(
+    value: object,
+    key: str = "multispectral.rgb_bands",
+) -> tuple[int, int, int]:
+    """Validate a three-band RGB selection using zero-based indices.
+
+    Args:
+        value: Raw configuration value containing three raster band indices.
+        key: Dotted configuration key used in error messages.
+
+    Returns:
+        The validated band indices as a tuple while preserving their
+        requested order.
+
+    Raises:
+        ConfigurationError: If the value does not contain exactly three
+            non-negative integer band indices.
+    """
+    if not isinstance(value, list) or len(value) != 3:
+        raise ConfigurationError(
+            f"{key} must contain exactly three integers."
+        )
+
+    if any(
+        not isinstance(band, int) or isinstance(band, bool)
+        for band in value
+    ):
+        raise ConfigurationError(
+            f"{key} entries must be integer values."
+        )
+
+    if any(band < 0 for band in value):
+        raise ConfigurationError(
+            f"{key} entries must be non-negative."
+        )
+
+    return (value[0], value[1], value[2])
 
 
 def _load_yaml_document(path: Path) -> dict[str, Any]:
@@ -108,8 +147,6 @@ def _load_yaml_document(path: Path) -> dict[str, Any]:
             f"control or the project archive."
         )
     try:
-        # safe_load (never load): parses plain data only and cannot execute
-        # arbitrary Python objects embedded in a manipulated YAML file.
         document = yaml.safe_load(path.read_text(encoding="utf-8"))
     except yaml.YAMLError as error:
         raise ConfigurationError(f"'{path}' is not valid YAML: {error}") from error
@@ -123,18 +160,7 @@ def _load_yaml_document(path: Path) -> dict[str, Any]:
 
 
 def _require_section(document: dict[str, Any], key: str) -> dict[str, Any]:
-    """Fetch a top-level section that must be a mapping.
-
-    Args:
-        document: Parsed YAML document.
-        key: Section name.
-
-    Returns:
-        The section mapping.
-
-    Raises:
-        ConfigurationError: If the section is missing or not a mapping.
-    """
+    """Fetch a top-level section that must be a mapping."""
     value = _require(document, key, context="config.yaml")
     if not isinstance(value, dict):
         raise ConfigurationError(
@@ -145,19 +171,7 @@ def _require_section(document: dict[str, Any], key: str) -> dict[str, Any]:
 
 
 def _require(mapping: dict[str, Any], key: str, context: str) -> Any:
-    """Fetch a required key, failing with its full dotted path.
-
-    Args:
-        mapping: Mapping to read from.
-        key: Required key.
-        context: Dotted location for the error message (e.g. ``"paths"``).
-
-    Returns:
-        The raw value.
-
-    Raises:
-        ConfigurationError: If the key is absent.
-    """
+    """Fetch a required key, failing with its full dotted path."""
     if key not in mapping:
         raise ConfigurationError(
             f"Missing required configuration key '{context}.{key}' in config.yaml."
@@ -166,19 +180,7 @@ def _require(mapping: dict[str, Any], key: str, context: str) -> Any:
 
 
 def _as_directory(value: Any, key: str) -> Path:
-    """Validate a directory setting and resolve it against the project root.
-
-    Args:
-        value: Raw YAML value.
-        key: Dotted key for error messages.
-
-    Returns:
-        An absolute path (relative inputs are anchored at ``PROJECT_ROOT``
-        so the YAML stays portable between machines).
-
-    Raises:
-        ConfigurationError: If the value is not a non-empty string.
-    """
+    """Validate a directory setting and resolve it against the project root."""
     if not isinstance(value, str) or not value.strip():
         raise ConfigurationError(
             f"'{key}' must be a non-empty path string, got {value!r}."
@@ -188,18 +190,7 @@ def _as_directory(value: Any, key: str) -> Path:
 
 
 def _as_log_level(value: Any, key: str) -> int:
-    """Validate a log level name and convert it to its numeric constant.
-
-    Args:
-        value: Raw YAML value (e.g. ``"INFO"``).
-        key: Dotted key for error messages.
-
-    Returns:
-        The numeric ``logging`` level.
-
-    Raises:
-        ConfigurationError: If the name is not a known level.
-    """
+    """Validate a log level name and convert it to its numeric constant."""
     if not isinstance(value, str) or value.upper() not in _VALID_LOG_LEVELS:
         raise ConfigurationError(
             f"'{key}' must be one of {sorted(_VALID_LOG_LEVELS)}, got {value!r}."
@@ -208,26 +199,12 @@ def _as_log_level(value: Any, key: str) -> int:
 
 
 def _as_hsv_triple(value: Any, key: str) -> tuple[int, int, int]:
-    """Validate an HSV bound: three integers within OpenCV's value ranges.
-
-    Args:
-        value: Raw YAML value (expected: list of three ints).
-        key: Dotted key for error messages.
-
-    Returns:
-        The bound as an ``(H, S, V)`` tuple.
-
-    Raises:
-        ConfigurationError: On wrong length, non-integer entries or values
-            outside ``H:[0,179] S:[0,255] V:[0,255]``.
-    """
+    """Validate an HSV bound: three integers within OpenCV's value ranges."""
     if not isinstance(value, (list, tuple)) or len(value) != 3:
         raise ConfigurationError(
             f"'{key}' must be a list of three integers [H, S, V], got {value!r}."
         )
     for channel, item, maximum in zip(_HSV_CHANNELS, value, _HSV_MAXIMA):
-        # bool is a subclass of int in Python -- YAML `true` would otherwise
-        # slip through an isinstance(int) check as the number 1.
         if isinstance(item, bool) or not isinstance(item, int):
             raise ConfigurationError(
                 f"'{key}': channel {channel} must be an integer, got {item!r}."
@@ -242,15 +219,7 @@ def _as_hsv_triple(value: Any, key: str) -> tuple[int, int, int]:
 def _validate_hsv_window(
     lower: tuple[int, int, int], upper: tuple[int, int, int]
 ) -> None:
-    """Ensure the lower HSV bound does not exceed the upper bound.
-
-    Args:
-        lower: Validated lower bound.
-        upper: Validated upper bound.
-
-    Raises:
-        ConfigurationError: If any lower channel exceeds its upper channel.
-    """
+    """Ensure the lower HSV bound does not exceed the upper bound."""
     for channel, low, high in zip(_HSV_CHANNELS, lower, upper):
         if low > high:
             raise ConfigurationError(
@@ -260,18 +229,7 @@ def _validate_hsv_window(
 
 
 def _as_alpha(value: Any, key: str) -> float:
-    """Validate an opacity value in ``[0, 1]``.
-
-    Args:
-        value: Raw YAML value.
-        key: Dotted key for error messages.
-
-    Returns:
-        The opacity as float.
-
-    Raises:
-        ConfigurationError: If the value is not a number in ``[0, 1]``.
-    """
+    """Validate an opacity value in ``[0, 1]``."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise ConfigurationError(f"'{key}' must be a number, got {value!r}.")
     if not 0.0 <= float(value) <= 1.0:
@@ -286,6 +244,7 @@ _document = _load_yaml_document(CONFIG_FILE)
 _paths = _require_section(_document, "paths")
 _logging = _require_section(_document, "logging")
 _water = _require_section(_document, "water_detection")
+_multispectral = _require_section(_document, "multispectral")
 _overlay = _require_section(_document, "overlay")
 
 BEFORE_DATA_DIR: Final[Path] = _as_directory(
@@ -303,12 +262,19 @@ LOG_LEVEL: Final[int] = _as_log_level(
 )
 
 WATER_HSV_LOWER: Final[tuple[int, int, int]] = _as_hsv_triple(
-    _require(_water, "hsv_lower", "water_detection"), "water_detection.hsv_lower"
+    _require(_water, "hsv_lower", "water_detection"),
+    "water_detection.hsv_lower",
 )
 WATER_HSV_UPPER: Final[tuple[int, int, int]] = _as_hsv_triple(
-    _require(_water, "hsv_upper", "water_detection"), "water_detection.hsv_upper"
+    _require(_water, "hsv_upper", "water_detection"),
+    "water_detection.hsv_upper",
 )
 _validate_hsv_window(WATER_HSV_LOWER, WATER_HSV_UPPER)
+
+MULTISPECTRAL_RGB_BANDS: Final[tuple[int, int, int]] = validate_rgb_bands(
+    _require(_multispectral, "rgb_bands", "multispectral"),
+    "multispectral.rgb_bands",
+)
 
 OVERLAY_ALPHA: Final[float] = _as_alpha(
     _require(_overlay, "alpha", "overlay"), "overlay.alpha"
@@ -322,4 +288,4 @@ REPORT_CSV_PATH: Final[Path] = OUTPUT_DATA_DIR / "report.csv"
 
 # The raw document served its purpose; removing the temporaries keeps the
 # module namespace clean for introspection and star-import hygiene.
-del _document, _paths, _logging, _water, _overlay
+del _document, _paths, _logging, _water, _multispectral, _overlay

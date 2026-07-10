@@ -385,9 +385,12 @@ Currently implemented on the development branch:
 
 - Multispectral GeoTIFF band selection
 - Configurable source band selection
-- Validation of selected raster bands
 - Support for selecting arbitrary raster bands for RGB image generation
+- User-configurable multispectral RGB band selection via `config.yaml`
+- Validation of multispectral RGB band configurations
+- Validation of band count, integer types, and non-negative band indices
 - Preservation of existing three-band RGB workflows
+- 111 automated tests currently passing
 
 Planned development:
 
@@ -430,12 +433,15 @@ Completed development:
 
 **Sentinel-2 & Multispectral Raster Foundation — In Development**
 
-Currently implemented:
+Currently implemented on the development branch:
 
 - Multispectral GeoTIFF band selection
 - Configurable raster band selection
+- User-configurable RGB band selection via `config.yaml`
 - Validation of multispectral band configurations
+- Validation of band count, integer types, and non-negative band indices
 - Preservation of existing RGB and GeoTIFF workflows
+- 111 automated tests
 
 Planned development:
 
