@@ -393,18 +393,24 @@ Currently implemented on the development branch:
 - Automatic multi-band GeoTIFF raster loading for water detection
 - Integration of configured RGB band selection into productive flood processing
 - Preservation of existing PNG, JPEG, and three-band GeoTIFF workflows
+- Sentinel-2 spectral band metadata foundation
+- Immutable Sentinel-2 band metadata model
+- Metadata definitions for B02, B03, B04, and B08
+- Native spatial resolution metadata for supported Sentinel-2 bands
+- Normalized and validated Sentinel-2 band lookup
 - Automated integration testing for four-band GeoTIFF processing
-- 112 automated tests currently passing
+- Automated tests for Sentinel-2 band metadata
+- 120 automated tests currently passing
 
 Planned development:
 
 - Sentinel-2 imagery support
 - Extended multispectral GeoTIFF raster loading
-- Sentinel-2 band metadata handling
+- Support for additional Sentinel-2 spectral bands
+- Integration of Sentinel-2 band metadata into raster processing workflows
 - Support for non-RGB raster workflows
 - Additional automated tests for multispectral raster processing
 
----
 ---
 
 ## Roadmap
@@ -449,17 +455,23 @@ Currently implemented on the development branch:
 - Automatic multi-band GeoTIFF raster loading for water detection
 - Integration of configured RGB band selection into productive flood processing
 - Preservation of existing PNG, JPEG, and three-band GeoTIFF workflows
+- Sentinel-2 spectral band metadata foundation
+- Immutable Sentinel-2 band metadata model
+- Metadata definitions for B02, B03, B04, and B08
+- Native spatial resolution metadata for supported Sentinel-2 bands
+- Normalized and validated Sentinel-2 band lookup
 - Automated integration testing for four-band GeoTIFF processing
-- 112 automated tests
+- Automated tests for Sentinel-2 band metadata
+- 120 automated tests
 
 Planned development:
 
 - Sentinel-2 imagery support
 - Extended multispectral GeoTIFF raster loading
-- Sentinel-2 band metadata handling
+- Support for additional Sentinel-2 spectral bands
+- Integration of Sentinel-2 band metadata into raster processing workflows
 - Support for non-RGB raster workflows
 - Additional automated tests for multispectral raster processing
-
 
 ### Version 0.10.0
 
