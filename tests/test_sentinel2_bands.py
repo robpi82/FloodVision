@@ -10,103 +10,34 @@ from src.sentinel2_bands import (
 )
 
 
-def test_b02_metadata() -> None:
-    """B02 exposes the expected Sentinel-2 blue-band metadata."""
-    band = get_sentinel2_band("B02")
+@pytest.mark.parametrize(
+    ("code", "name", "resolution_m"),
+    [
+        ("B02", "Blue", 10),
+        ("B03", "Green", 10),
+        ("B04", "Red", 10),
+        ("B05", "Vegetation Red Edge", 20),
+        ("B06", "Vegetation Red Edge", 20),
+        ("B07", "Vegetation Red Edge", 20),
+        ("B08", "Near Infrared", 10),
+        ("B8A", "Narrow Near Infrared", 20),
+        ("B09", "Water Vapour", 60),
+        ("B10", "Cirrus", 60),
+        ("B11", "Short-Wave Infrared", 20),
+        ("B12", "Short-Wave Infrared", 20),
+    ],
+)
+def test_supported_band_metadata(
+    code: str,
+    name: str,
+    resolution_m: int,
+) -> None:
+    """Supported bands expose the expected Sentinel-2 metadata."""
+    band = get_sentinel2_band(code)
 
-    assert band.code == "B02"
-    assert band.name == "Blue"
-    assert band.resolution_m == 10
-
-
-def test_b03_metadata() -> None:
-    """B03 exposes the expected Sentinel-2 green-band metadata."""
-    band = get_sentinel2_band("B03")
-
-    assert band.code == "B03"
-    assert band.name == "Green"
-    assert band.resolution_m == 10
-
-
-def test_b04_metadata() -> None:
-    """B04 exposes the expected Sentinel-2 red-band metadata."""
-    band = get_sentinel2_band("B04")
-
-    assert band.code == "B04"
-    assert band.name == "Red"
-    assert band.resolution_m == 10
-
-
-def test_b05_metadata() -> None:
-    """B05 exposes the expected Sentinel-2 red-edge metadata."""
-    band = get_sentinel2_band("B05")
-
-    assert band.code == "B05"
-    assert band.name == "Vegetation Red Edge"
-    assert band.resolution_m == 20
-
-
-def test_b06_metadata() -> None:
-    """B06 exposes the expected Sentinel-2 red-edge metadata."""
-    band = get_sentinel2_band("B06")
-
-    assert band.code == "B06"
-    assert band.name == "Vegetation Red Edge"
-    assert band.resolution_m == 20
-
-
-def test_b07_metadata() -> None:
-    """B07 exposes the expected Sentinel-2 red-edge metadata."""
-    band = get_sentinel2_band("B07")
-
-    assert band.code == "B07"
-    assert band.name == "Vegetation Red Edge"
-    assert band.resolution_m == 20
-
-
-def test_b08_metadata() -> None:
-    """B08 exposes the expected Sentinel-2 NIR-band metadata."""
-    band = get_sentinel2_band("B08")
-
-    assert band.code == "B08"
-    assert band.name == "Near Infrared"
-    assert band.resolution_m == 10
-
-
-def test_b8a_metadata() -> None:
-    """B8A exposes the expected Sentinel-2 narrow NIR-band metadata."""
-    band = get_sentinel2_band("B8A")
-
-    assert band.code == "B8A"
-    assert band.name == "Narrow Near Infrared"
-    assert band.resolution_m == 20
-
-
-def test_b09_metadata() -> None:
-    """B09 exposes the expected Sentinel-2 water-vapour metadata."""
-    band = get_sentinel2_band("B09")
-
-    assert band.code == "B09"
-    assert band.name == "Water Vapour"
-    assert band.resolution_m == 60
-
-
-def test_b10_metadata() -> None:
-    """B10 exposes the expected Sentinel-2 cirrus metadata."""
-    band = get_sentinel2_band("B10")
-
-    assert band.code == "B10"
-    assert band.name == "Cirrus"
-    assert band.resolution_m == 60
-
-
-def test_b11_metadata() -> None:
-    """B11 exposes the expected Sentinel-2 SWIR metadata."""
-    band = get_sentinel2_band("B11")
-
-    assert band.code == "B11"
-    assert band.name == "Short-Wave Infrared"
-    assert band.resolution_m == 20
+    assert band.code == code
+    assert band.name == name
+    assert band.resolution_m == resolution_m
 
 
 def test_band_lookup_is_case_insensitive() -> None:
