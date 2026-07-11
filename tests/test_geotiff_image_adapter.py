@@ -7,7 +7,15 @@ from src.geotiff_raster_loader import GeoTiffRasterData
 
 def make(data, mask=None):
     mask = np.ones(data.shape[1:], dtype=bool) if mask is None else mask
-    return GeoTiffRasterData(Path("test.tif"), data, mask, None)
+    band_descriptions = (None,) * data.shape[0]
+
+    return GeoTiffRasterData(
+        path=Path("test.tif"),
+        data=data,
+        valid_mask=mask,
+        nodata=None,
+        band_descriptions=band_descriptions,
+    )
 
 
 def test_uint8_rgb():

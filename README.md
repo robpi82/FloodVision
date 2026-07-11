@@ -126,6 +126,8 @@ Currently under development for FloodVision v0.9.0:
 * Normalized and validated Sentinel-2 band lookup
 * Sentinel-2 band code to zero-based raster index conversion
 * Preservation of requested Sentinel-2 band order during raster index conversion
+* GeoTIFF band description loading via Rasterio
+* Preservation of GeoTIFF band descriptions in raster data
 * Complete Sentinel-2 band metadata catalog
 * Foundation for future Sentinel-2 imagery support
 * Foundation for future non-RGB raster processing workflows
@@ -199,6 +201,7 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 * Sentinel-2 band metadata tests
 * Parameterized Sentinel-2 band metadata tests
 * Sentinel-2 band index conversion tests
+* GeoTIFF band description loading tests
 
 ---
 

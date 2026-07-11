@@ -54,6 +54,23 @@ def test_load_preserves_pixel_values(
     np.testing.assert_array_equal(result.data, expected)
 
 
+def test_load_preserves_band_descriptions(
+    loader: GeoTiffRasterLoader,
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "sentinel2_bands.tif"
+    write_raster(path, band_count=3)
+
+    with rasterio.open(path, "r+") as dataset:
+        dataset.set_band_description(1, "B04")
+        dataset.set_band_description(2, "B03")
+        dataset.set_band_description(3, "B02")
+
+    result = loader.load(path)
+
+    assert result.band_descriptions == ("B04", "B03", "B02")
+
+
 @pytest.mark.parametrize("band_count", [1, 2, 3])
 def test_load_supports_band_counts(
     loader: GeoTiffRasterLoader, tmp_path: Path, band_count: int

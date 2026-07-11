@@ -19,6 +19,7 @@ class GeoTiffRasterData:
     data: np.ndarray
     valid_mask: np.ndarray
     nodata: float | None
+    band_descriptions: tuple[str | None, ...]
 
     @property
     def band_count(self) -> int:
@@ -48,6 +49,7 @@ class GeoTiffRasterLoader:
                 data = dataset.read()
                 valid_mask = dataset.dataset_mask() > 0
                 nodata = dataset.nodata
+                band_descriptions = dataset.descriptions
         except Exception as error:
             raise ImageLoadError(raster_path, str(error)) from error
 
@@ -56,4 +58,6 @@ class GeoTiffRasterLoader:
             data=data,
             valid_mask=valid_mask,
             nodata=nodata,
+            band_descriptions=band_descriptions,
         )
+

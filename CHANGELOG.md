@@ -24,6 +24,9 @@ All notable changes to this project will be documented in this file.
 - Integration of configured RGB band selection into productive flood processing
 - Dedicated GeoTIFF raster loading and RGB conversion in the batch pipeline
 - Automated integration test for four-band GeoTIFF processing with selected RGB bands
+- GeoTIFF band description loading via Rasterio
+- Preservation of GeoTIFF band descriptions in raster data
+- Automated tests for GeoTIFF band description loading
 - Sentinel-2 spectral band metadata foundation
 - Immutable `Sentinel2Band` metadata model
 - Complete Sentinel-2 band metadata catalog
@@ -36,7 +39,7 @@ All notable changes to this project will be documented in this file.
 - Sentinel-2 band code to zero-based raster index conversion
 - Preservation of requested Sentinel-2 band order during raster index conversion
 - Automated tests for Sentinel-2 band index conversion
-- 129 automated tests in the complete test suite
+- 130 automated tests in the complete test suite
 
 ### Improved
 
