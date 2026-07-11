@@ -100,6 +100,15 @@ def test_b10_metadata() -> None:
     assert band.resolution_m == 60
 
 
+def test_b11_metadata() -> None:
+    """B11 exposes the expected Sentinel-2 SWIR metadata."""
+    band = get_sentinel2_band("B11")
+
+    assert band.code == "B11"
+    assert band.name == "Short-Wave Infrared"
+    assert band.resolution_m == 20
+
+
 def test_band_lookup_is_case_insensitive() -> None:
     """Band codes can be looked up regardless of letter case."""
     band = get_sentinel2_band("b04")

@@ -78,6 +78,11 @@ SENTINEL2_BANDS: Final[dict[str, Sentinel2Band]] = {
         name="Cirrus",
         resolution_m=60,
     ),
+    "B11": Sentinel2Band(
+        code="B11",
+        name="Short-Wave Infrared",
+        resolution_m=20,
+    ),
 }
 
 
