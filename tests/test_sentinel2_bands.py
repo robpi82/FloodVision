@@ -77,3 +77,13 @@ def test_sentinel2_band_codes_are_converted_to_raster_indices() -> None:
     indices = get_sentinel2_band_indices(("B04", "B03", "B02"))
 
     assert indices == (2, 1, 0)
+
+
+def test_band_indices_follow_actual_raster_band_order() -> None:
+    """Band indices are resolved from the actual raster band order."""
+    indices = get_sentinel2_band_indices(
+        ("B04", "B03", "B02"),
+        available_codes=("B08", "B04", "B03", "B02"),
+    )
+
+    assert indices == (1, 2, 3)

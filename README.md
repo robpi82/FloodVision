@@ -201,6 +201,7 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 * Sentinel-2 band metadata tests
 * Parameterized Sentinel-2 band metadata tests
 * Sentinel-2 band index conversion tests
+* Raster-aware Sentinel-2 band index resolution tests
 * GeoTIFF band description loading tests
 
 ---

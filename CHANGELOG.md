@@ -39,7 +39,9 @@ All notable changes to this project will be documented in this file.
 - Sentinel-2 band code to zero-based raster index conversion
 - Preservation of requested Sentinel-2 band order during raster index conversion
 - Automated tests for Sentinel-2 band index conversion
-- 130 automated tests in the complete test suite
+- Sentinel-2 band index resolution from actual raster band order
+- Automated tests for raster-aware Sentinel-2 band index resolution
+- 131 automated tests in the complete test suite
 
 ### Improved
 
