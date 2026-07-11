@@ -124,6 +124,8 @@ Currently under development for FloodVision v0.9.0:
 * Metadata definitions for B02, B03, B04, B05, B06, B07, B08, B8A, B09, B10, B11, and B12
 * Native spatial resolution metadata for supported Sentinel-2 bands
 * Normalized and validated Sentinel-2 band lookup
+* Sentinel-2 band code to zero-based raster index conversion
+* Preservation of requested Sentinel-2 band order during raster index conversion
 * Complete Sentinel-2 band metadata catalog
 * Foundation for future Sentinel-2 imagery support
 * Foundation for future non-RGB raster processing workflows
@@ -196,6 +198,7 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 * Four-band GeoTIFF integration tests
 * Sentinel-2 band metadata tests
 * Parameterized Sentinel-2 band metadata tests
+* Sentinel-2 band index conversion tests
 
 ---
 
@@ -418,7 +421,7 @@ Currently implemented on the development branch:
 * Normalized and validated Sentinel-2 band lookup
 * Automated integration testing for four-band GeoTIFF processing
 * Parameterized automated tests for Sentinel-2 band metadata
-* 128 automated tests currently passing
+* 129 automated tests currently passing
 
 Planned development:
 
@@ -480,7 +483,7 @@ Currently implemented on the development branch:
 * Normalized and validated Sentinel-2 band lookup
 * Automated integration testing for four-band GeoTIFF processing
 * Parameterized automated tests for Sentinel-2 band metadata
-* 128 automated tests
+* 129 automated tests
 
 Planned development:
 

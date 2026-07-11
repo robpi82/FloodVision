@@ -33,7 +33,10 @@ All notable changes to this project will be documented in this file.
 - Whitespace normalization for Sentinel-2 band codes
 - Validation and error handling for unknown Sentinel-2 bands
 - Parameterized automated tests for Sentinel-2 band metadata
-- 128 automated tests in the complete test suite
+- Sentinel-2 band code to zero-based raster index conversion
+- Preservation of requested Sentinel-2 band order during raster index conversion
+- Automated tests for Sentinel-2 band index conversion
+- 129 automated tests in the complete test suite
 
 ### Improved
 

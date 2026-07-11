@@ -7,8 +7,8 @@ import pytest
 from src.sentinel2_bands import (
     Sentinel2Band,
     get_sentinel2_band,
+    get_sentinel2_band_indices,
 )
-
 
 @pytest.mark.parametrize(
     ("code", "name", "resolution_m"),
@@ -70,3 +70,10 @@ def test_band_metadata_is_immutable() -> None:
 
     with pytest.raises(AttributeError):
         band.name = "Changed"
+
+
+def test_sentinel2_band_codes_are_converted_to_raster_indices() -> None:
+    """Sentinel-2 band codes are converted to zero-based raster indices."""
+    indices = get_sentinel2_band_indices(("B04", "B03", "B02"))
+
+    assert indices == (2, 1, 0)

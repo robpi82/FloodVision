@@ -113,3 +113,28 @@ def get_sentinel2_band(code: str) -> Sentinel2Band:
         raise ValueError(
             f"Unknown Sentinel-2 band: {code}"
         ) from error
+
+
+def get_sentinel2_band_indices(
+    codes: tuple[str, ...],
+) -> tuple[int, ...]:
+    """Convert Sentinel-2 band codes to zero-based raster indices.
+
+    Band codes are resolved using the order of the supported Sentinel-2
+    band metadata catalog. Input order is preserved.
+
+    Args:
+        codes: Sentinel-2 band codes to convert.
+
+    Returns:
+        Zero-based raster indices corresponding to the requested band codes.
+
+    Raises:
+        ValueError: If any requested Sentinel-2 band code is unknown.
+    """
+    band_codes = tuple(SENTINEL2_BANDS)
+
+    return tuple(
+        band_codes.index(get_sentinel2_band(code).code)
+        for code in codes
+    )
