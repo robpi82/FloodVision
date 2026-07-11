@@ -47,7 +47,10 @@ All notable changes to this project will be documented in this file.
 - Automated integration testing for Sentinel-2 band-description-based RGB selection
 - Validation of required Sentinel-2 RGB bands in raster band descriptions
 - Clear error reporting for missing required Sentinel-2 RGB bands
-- 133 automated tests in the complete test suite
+- Support for partially missing GeoTIFF band descriptions
+- Sentinel-2 band index resolution despite unrelated missing band descriptions
+- Automated tests for partial Sentinel-2 band description handling
+- 134 automated tests in the complete test suite
 
 ### Improved
 

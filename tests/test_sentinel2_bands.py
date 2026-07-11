@@ -1,3 +1,4 @@
+
 """Tests for Sentinel-2 band metadata."""
 
 from __future__ import annotations
@@ -9,6 +10,7 @@ from src.sentinel2_bands import (
     get_sentinel2_band,
     get_sentinel2_band_indices,
 )
+
 
 @pytest.mark.parametrize(
     ("code", "name", "resolution_m"),
@@ -87,3 +89,14 @@ def test_band_indices_follow_actual_raster_band_order() -> None:
     )
 
     assert indices == (1, 2, 3)
+
+
+def test_band_indices_support_partially_missing_descriptions() -> None:
+    """Required bands are resolved despite unrelated missing descriptions."""
+    indices = get_sentinel2_band_indices(
+        ("B04", "B03", "B02"),
+        available_codes=("B08", "B04", "B03", "B02", None),
+    )
+
+    assert indices == (1, 2, 3)
+

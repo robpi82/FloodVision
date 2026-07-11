@@ -1,3 +1,4 @@
+
 """Sentinel-2 spectral band metadata.
 
 This module provides structured metadata for Sentinel-2 spectral bands.
@@ -117,29 +118,33 @@ def get_sentinel2_band(code: str) -> Sentinel2Band:
 
 def get_sentinel2_band_indices(
     codes: tuple[str, ...],
-    available_codes: tuple[str, ...] | None = None,
+    available_codes: tuple[str | None, ...] | None = None,
 ) -> tuple[int, ...]:
     """Convert Sentinel-2 band codes to zero-based raster indices.
 
     When available band codes are provided, indices are resolved from the
-    actual raster band order. Otherwise, the supported Sentinel-2 metadata
-    catalog order is used.
+    actual raster band order. Missing band descriptions are preserved as
+    ``None`` and do not prevent other available bands from being resolved.
+
+    Otherwise, the supported Sentinel-2 metadata catalog order is used.
 
     Args:
         codes: Sentinel-2 band codes to convert.
         available_codes: Optional band codes in actual raster order.
+            Individual descriptions may be ``None``.
 
     Returns:
         Zero-based raster indices corresponding to the requested band codes.
 
     Raises:
-        ValueError: If any requested Sentinel-2 band code is unknown.
+        ValueError: If a requested Sentinel-2 band code is unknown or is not
+            available in the provided raster band descriptions.
     """
     band_codes = (
         tuple(SENTINEL2_BANDS)
         if available_codes is None
         else tuple(
-            get_sentinel2_band(code).code
+            get_sentinel2_band(code).code if code is not None else None
             for code in available_codes
         )
     )
@@ -158,3 +163,4 @@ def get_sentinel2_band_indices(
         indices.append(band_codes.index(normalized_code))
 
     return tuple(indices)
+
