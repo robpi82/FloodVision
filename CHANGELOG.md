@@ -45,7 +45,9 @@ All notable changes to this project will be documented in this file.
 - Integration of actual raster band order into productive GeoTIFF processing
 - Automatic resolution of B04, B03, and B02 for Sentinel-2 RGB processing
 - Automated integration testing for Sentinel-2 band-description-based RGB selection
-- 132 automated tests in the complete test suite
+- Validation of required Sentinel-2 RGB bands in raster band descriptions
+- Clear error reporting for missing required Sentinel-2 RGB bands
+- 133 automated tests in the complete test suite
 
 ### Improved
 

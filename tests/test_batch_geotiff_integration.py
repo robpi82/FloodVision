@@ -426,7 +426,58 @@ class TestMultispectralGeoTiffPair:
                     / "overlay.png"
             ).is_file()
 
+    def test_missing_sentinel2_rgb_bands_fail_processing(
+            self,
+            pair_dirs: Path,
+    ) -> None:
+        """Missing required Sentinel-2 RGB bands produce a failed record."""
+        data = np.zeros(
+            (3, HEIGHT, WIDTH),
+            dtype=np.uint8,
+        )
 
+        for path in (
+                pair_dirs / "before" / "incomplete_sentinel2.tif",
+                pair_dirs / "after" / "incomplete_sentinel2.tif",
+        ):
+            with rasterio.open(
+                    path,
+                    "w",
+                    driver="GTiff",
+                    width=WIDTH,
+                    height=HEIGHT,
+                    count=3,
+                    dtype="uint8",
+                    crs=UTM32,
+                    transform=from_origin(
+                        ORIGIN[0],
+                        ORIGIN[1],
+                        PIXEL,
+                        PIXEL,
+                    ),
+            ) as dataset:
+                dataset.write(data)
+                dataset.set_band_description(1, "B08")
+                dataset.set_band_description(2, "B11")
+                dataset.set_band_description(3, "B12")
+
+        result, output_dir = run_batch(pair_dirs)
+
+        record = record_by_name(
+            result,
+            "incomplete_sentinel2.tif",
+        )
+
+        assert record.status is ProcessingStatus.FAILED
+        assert record.error_message is not None
+        assert (
+                "Required Sentinel-2 band B04 is not available in raster bands"
+                in record.error_message
+        )
+        assert not (
+                output_dir
+                / "incomplete_sentinel2"
+        ).exists()
 # ---------------------------------------------------------------------------
 # Incompatible GeoTIFF pairs (tasks 14-16)
 # ---------------------------------------------------------------------------

@@ -144,7 +144,17 @@ def get_sentinel2_band_indices(
         )
     )
 
-    return tuple(
-        band_codes.index(get_sentinel2_band(code).code)
-        for code in codes
-    )
+    indices: list[int] = []
+
+    for code in codes:
+        normalized_code = get_sentinel2_band(code).code
+
+        if normalized_code not in band_codes:
+            raise ValueError(
+                f"Required Sentinel-2 band {normalized_code} "
+                "is not available in raster bands"
+            )
+
+        indices.append(band_codes.index(normalized_code))
+
+    return tuple(indices)

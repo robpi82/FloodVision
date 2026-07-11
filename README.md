@@ -129,6 +129,8 @@ Currently under development for FloodVision v0.9.0:
 * GeoTIFF band description loading via Rasterio
 * Preservation of GeoTIFF band descriptions in raster data
 * Automatic Sentinel-2 RGB band selection from GeoTIFF band descriptions
+* Validation of required Sentinel-2 RGB bands in raster band descriptions
+* Clear error reporting when required Sentinel-2 RGB bands are missing
 * Resolution of B04, B03, and B02 from the actual raster band order
 * Integration of Sentinel-2 band descriptions into productive GeoTIFF processing
 * Complete Sentinel-2 band metadata catalog
@@ -207,6 +209,7 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 * Raster-aware Sentinel-2 band index resolution tests
 * GeoTIFF band description loading tests
 * Sentinel-2 band-description-based RGB selection integration tests
+* Missing Sentinel-2 RGB band validation tests
 
 ---
 
