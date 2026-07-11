@@ -55,6 +55,15 @@ def test_b06_metadata() -> None:
     assert band.resolution_m == 20
 
 
+def test_b07_metadata() -> None:
+    """B07 exposes the expected Sentinel-2 red-edge metadata."""
+    band = get_sentinel2_band("B07")
+
+    assert band.code == "B07"
+    assert band.name == "Vegetation Red Edge"
+    assert band.resolution_m == 20
+
+
 def test_b08_metadata() -> None:
     """B08 exposes the expected Sentinel-2 NIR-band metadata."""
     band = get_sentinel2_band("B08")

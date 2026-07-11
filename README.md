@@ -410,12 +410,12 @@ Currently implemented on the development branch:
 * Preservation of existing PNG, JPEG, and three-band GeoTIFF workflows
 * Sentinel-2 spectral band metadata foundation
 * Immutable Sentinel-2 band metadata model
-* Metadata definitions for B02, B03, B04, B05, B06, and B08
+* Metadata definitions for B02, B03, B04, B05, B06, B07, and B08
 * Native spatial resolution metadata for supported Sentinel-2 bands
 * Normalized and validated Sentinel-2 band lookup
 * Automated integration testing for four-band GeoTIFF processing
 * Automated tests for Sentinel-2 band metadata
-* 122 automated tests currently passing
+* 123 automated tests currently passing
 
 Planned development:
 
@@ -472,12 +472,12 @@ Currently implemented on the development branch:
 * Preservation of existing PNG, JPEG, and three-band GeoTIFF workflows
 * Sentinel-2 spectral band metadata foundation
 * Immutable Sentinel-2 band metadata model
-* Metadata definitions for B02, B03, B04, B05, B06, and B08
+* Metadata definitions for B02, B03, B04, B05, B06, B07, and B08
 * Native spatial resolution metadata for supported Sentinel-2 bands
 * Normalized and validated Sentinel-2 band lookup
 * Automated integration testing for four-band GeoTIFF processing
 * Automated tests for Sentinel-2 band metadata
-* 122 automated tests
+* 123 automated tests
 
 Planned development:
 
