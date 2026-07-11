@@ -26,13 +26,13 @@ All notable changes to this project will be documented in this file.
 - Automated integration test for four-band GeoTIFF processing with selected RGB bands
 - Sentinel-2 spectral band metadata foundation
 - Immutable `Sentinel2Band` metadata model
-- Sentinel-2 metadata definitions for B02, B03, B04, B05, B06, B07, B08, and B8A
+- Sentinel-2 metadata definitions for B02, B03, B04, B05, B06, B07, B08, B8A, and B09
 - Native spatial resolution metadata for supported Sentinel-2 bands
 - Case-insensitive Sentinel-2 band lookup
 - Whitespace normalization for Sentinel-2 band codes
 - Validation and error handling for unknown Sentinel-2 bands
 - Automated tests for Sentinel-2 band metadata
-- 124 automated tests in the complete test suite
+- 125 automated tests in the complete test suite
 
 ### Improved
 
