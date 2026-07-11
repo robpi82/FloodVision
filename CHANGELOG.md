@@ -41,7 +41,11 @@ All notable changes to this project will be documented in this file.
 - Automated tests for Sentinel-2 band index conversion
 - Sentinel-2 band index resolution from actual raster band order
 - Automated tests for raster-aware Sentinel-2 band index resolution
-- 131 automated tests in the complete test suite
+- Automatic Sentinel-2 RGB band selection from GeoTIFF band descriptions
+- Integration of actual raster band order into productive GeoTIFF processing
+- Automatic resolution of B04, B03, and B02 for Sentinel-2 RGB processing
+- Automated integration testing for Sentinel-2 band-description-based RGB selection
+- 132 automated tests in the complete test suite
 
 ### Improved
 

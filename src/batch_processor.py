@@ -36,6 +36,7 @@ from src.geotiff_image_adapter import GeoTiffImageAdapter
 from src.geotiff_loader import GeoTiffLoader, GeoTiffMetadata
 from src.geotiff_raster_loader import GeoTiffRasterLoader
 from src.image_loader import ImageLoader, ImagePair, find_image_pairs
+from src.sentinel2_bands import get_sentinel2_band_indices
 from src.water_detection import WaterDetectionResult, WaterSegmentationStrategy
 
 logger = logging.getLogger(__name__)
@@ -320,9 +321,17 @@ class BatchProcessor:
 
         raster = self._geotiff_raster_loader.load(path)
 
+        bands = self._multispectral_rgb_bands
+
+        if all(description is not None for description in raster.band_descriptions):
+            bands = get_sentinel2_band_indices(
+                ("B04", "B03", "B02"),
+                available_codes=raster.band_descriptions,
+            )
+
         return self._geotiff_image_adapter.to_image(
             raster,
-            bands=self._multispectral_rgb_bands,
+            bands=bands,
         )
 
     def _process_single(self, pair: ImagePair) -> FloodComparisonResult:
