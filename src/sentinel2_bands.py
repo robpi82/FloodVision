@@ -73,6 +73,11 @@ SENTINEL2_BANDS: Final[dict[str, Sentinel2Band]] = {
         name="Water Vapour",
         resolution_m=60,
     ),
+    "B10": Sentinel2Band(
+        code="B10",
+        name="Cirrus",
+        resolution_m=60,
+    ),
 }
 
 

@@ -81,12 +81,22 @@ def test_b8a_metadata() -> None:
     assert band.name == "Narrow Near Infrared"
     assert band.resolution_m == 20
 
+
 def test_b09_metadata() -> None:
     """B09 exposes the expected Sentinel-2 water-vapour metadata."""
     band = get_sentinel2_band("B09")
 
     assert band.code == "B09"
     assert band.name == "Water Vapour"
+    assert band.resolution_m == 60
+
+
+def test_b10_metadata() -> None:
+    """B10 exposes the expected Sentinel-2 cirrus metadata."""
+    band = get_sentinel2_band("B10")
+
+    assert band.code == "B10"
+    assert band.name == "Cirrus"
     assert band.resolution_m == 60
 
 
