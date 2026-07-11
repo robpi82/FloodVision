@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-pink)
-![Tests](https://img.shields.io/badge/tests-122%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-124%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -121,7 +121,7 @@ Currently under development for FloodVision v0.9.0:
 * Preservation of existing three-band RGB workflows
 * Sentinel-2 spectral band metadata foundation
 * Immutable Sentinel-2 band metadata model
-* Metadata definitions for B02, B03, B04, B05, B06, and B08
+* Metadata definitions for B02, B03, B04, B05, B06, B07, B08, and B8A
 * Native spatial resolution metadata for supported Sentinel-2 bands
 * Normalized and validated Sentinel-2 band lookup
 * Foundation for future Sentinel-2 imagery support
@@ -268,7 +268,7 @@ python -m pytest -v
 Current development status:
 
 ```text
-122 passed, 3 warnings
+124 passed, 3 warnings
 ```
 
 ---
@@ -410,12 +410,12 @@ Currently implemented on the development branch:
 * Preservation of existing PNG, JPEG, and three-band GeoTIFF workflows
 * Sentinel-2 spectral band metadata foundation
 * Immutable Sentinel-2 band metadata model
-* Metadata definitions for B02, B03, B04, B05, B06, B07, and B08
+* Metadata definitions for B02, B03, B04, B05, B06, B07, B08, and B8A
 * Native spatial resolution metadata for supported Sentinel-2 bands
 * Normalized and validated Sentinel-2 band lookup
 * Automated integration testing for four-band GeoTIFF processing
 * Automated tests for Sentinel-2 band metadata
-* 123 automated tests currently passing
+* 124 automated tests currently passing
 
 Planned development:
 
@@ -472,12 +472,12 @@ Currently implemented on the development branch:
 * Preservation of existing PNG, JPEG, and three-band GeoTIFF workflows
 * Sentinel-2 spectral band metadata foundation
 * Immutable Sentinel-2 band metadata model
-* Metadata definitions for B02, B03, B04, B05, B06, B07, and B08
+* Metadata definitions for B02, B03, B04, B05, B06, B07, B08, and B8A
 * Native spatial resolution metadata for supported Sentinel-2 bands
 * Normalized and validated Sentinel-2 band lookup
 * Automated integration testing for four-band GeoTIFF processing
 * Automated tests for Sentinel-2 band metadata
-* 123 automated tests
+* 124 automated tests
 
 Planned development:
 

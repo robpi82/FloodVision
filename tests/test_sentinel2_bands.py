@@ -73,6 +73,15 @@ def test_b08_metadata() -> None:
     assert band.resolution_m == 10
 
 
+def test_b8a_metadata() -> None:
+    """B8A exposes the expected Sentinel-2 narrow NIR-band metadata."""
+    band = get_sentinel2_band("B8A")
+
+    assert band.code == "B8A"
+    assert band.name == "Narrow Near Infrared"
+    assert band.resolution_m == 20
+
+
 def test_band_lookup_is_case_insensitive() -> None:
     """Band codes can be looked up regardless of letter case."""
     band = get_sentinel2_band("b04")
