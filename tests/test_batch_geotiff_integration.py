@@ -426,6 +426,85 @@ class TestMultispectralGeoTiffPair:
                     / "overlay.png"
             ).is_file()
 
+    def test_partial_sentinel2_band_descriptions_determine_rgb_band_order(
+            self,
+            pair_dirs: Path,
+    ) -> None:
+        """Required RGB bands are resolved despite unrelated missing descriptions."""
+        before = np.zeros(
+            (5, HEIGHT, WIDTH),
+            dtype=np.uint8,
+        )
+        after = np.zeros(
+            (5, HEIGHT, WIDTH),
+            dtype=np.uint8,
+        )
+
+        # Actual raster order: B08, B04, B03, B02, unknown.
+        before[0] = 200
+        before[1] = LAND_RGB[0]
+        before[2] = LAND_RGB[1]
+        before[3] = LAND_RGB[2]
+
+        after[0] = 200
+        after[1] = LAND_RGB[0]
+        after[2] = LAND_RGB[1]
+        after[3] = LAND_RGB[2]
+
+        after[1, 10:38, 20:50] = WATER_RGB[0]
+        after[2, 10:38, 20:50] = WATER_RGB[1]
+        after[3, 10:38, 20:50] = WATER_RGB[2]
+
+        for path, data in (
+                (
+                        pair_dirs / "before" / "partial_sentinel2.tif",
+                        before,
+                ),
+                (
+                        pair_dirs / "after" / "partial_sentinel2.tif",
+                        after,
+                ),
+        ):
+            with rasterio.open(
+                    path,
+                    "w",
+                    driver="GTiff",
+                    width=WIDTH,
+                    height=HEIGHT,
+                    count=5,
+                    dtype="uint8",
+                    crs=UTM32,
+                    transform=from_origin(
+                        ORIGIN[0],
+                        ORIGIN[1],
+                        PIXEL,
+                        PIXEL,
+                    ),
+            ) as dataset:
+                dataset.write(data)
+                dataset.set_band_description(1, "B08")
+                dataset.set_band_description(2, "B04")
+                dataset.set_band_description(3, "B03")
+                dataset.set_band_description(4, "B02")
+
+        result, output_dir = run_batch(pair_dirs)
+
+        record = record_by_name(
+            result,
+            "partial_sentinel2.tif",
+        )
+
+        assert record.status is ProcessingStatus.SUCCESS
+        assert record.error_message is None
+        assert record.new_flood_pixels
+        assert record.new_flood_pixels > 0
+
+        assert (
+                output_dir
+                / "partial_sentinel2"
+                / "overlay.png"
+        ).is_file()
+
     def test_missing_sentinel2_rgb_bands_fail_processing(
             self,
             pair_dirs: Path,

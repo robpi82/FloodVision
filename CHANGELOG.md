@@ -50,7 +50,9 @@ All notable changes to this project will be documented in this file.
 - Support for partially missing GeoTIFF band descriptions
 - Sentinel-2 band index resolution despite unrelated missing band descriptions
 - Automated tests for partial Sentinel-2 band description handling
-- 134 automated tests in the complete test suite
+- Productive support for partially missing Sentinel-2 band descriptions
+- Automated integration testing for partial Sentinel-2 band descriptions in batch processing
+- 135 automated tests in the complete test suite
 
 ### Improved
 

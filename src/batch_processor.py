@@ -323,7 +323,7 @@ class BatchProcessor:
 
         bands = self._multispectral_rgb_bands
 
-        if all(description is not None for description in raster.band_descriptions):
+        if any(description is not None for description in raster.band_descriptions):
             bands = get_sentinel2_band_indices(
                 ("B04", "B03", "B02"),
                 available_codes=raster.band_descriptions,
