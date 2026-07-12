@@ -24,3 +24,6 @@ data/output/
 real_world_test/
 data/before/real_world_test.tif
 data/after/real_world_test.tif
+
+gui_settings.json
+project_tree.txt
