@@ -6,6 +6,7 @@ import numpy as np
 from PIL import Image
 
 from src.geotiff_raster_loader import GeoTiffRasterData
+from src.stretch import Stretch
 
 
 class GeoTiffImageAdapter:
@@ -15,11 +16,18 @@ class GeoTiffImageAdapter:
         self,
         raster: GeoTiffRasterData,
         bands: tuple[int, int, int] | None = None,
+        stretch: Stretch | None = None,
     ) -> Image.Image:
         """Convert raster data to an RGB image.
 
         Optionally select three raster bands in the requested RGB order.
         Band indices are zero-based.
+
+        A stretch may be supplied to map raster values onto the display range
+        using a fixed value range instead of the per-image range. Rasters that
+        are compared against each other, such as a before/after pair, must use
+        the same stretch, otherwise identical physical pixel values are mapped
+        onto different display values. See `compute_shared_stretch`.
         """
         data = raster.data
 
@@ -45,8 +53,16 @@ class GeoTiffImageAdapter:
         rgb = np.moveaxis(data, 0, -1)
 
         if rgb.dtype == np.uint8:
+            # Already on an absolute 0-255 scale and therefore comparable
+            # across rasters. No stretch is applied, even if one is supplied.
             result = rgb.copy()
+        elif stretch is not None:
+            result = stretch.apply(rgb)
         else:
+            # Legacy per-image stretch. The value range is derived from this
+            # raster alone, which makes the result incomparable to any other
+            # raster. Kept for single-raster display only. Do not use for
+            # before/after comparison or for any spectral index.
             values = rgb[raster.valid_mask]
 
             if values.size == 0:
