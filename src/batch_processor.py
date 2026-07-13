@@ -41,6 +41,7 @@ from src.image_loader import ImageLoader, ImagePair, find_image_pairs
 from src.sentinel2_band_resolver import Sentinel2BandResolver
 from src.stretch import compute_shared_stretch
 from src.water_detection import WaterDetectionResult, WaterSegmentationStrategy
+from src.spectral_detector import SpectralWaterDetector
 
 logger = logging.getLogger(__name__)
 
@@ -435,6 +436,21 @@ class BatchProcessor:
         )
 
         return before_image, after_image
+
+    def _detect_water(
+            self,
+            image: Image.Image,
+            path: Path,
+    ) -> WaterDetectionResult:
+        """Run water detection using the configured detection strategy."""
+
+        if isinstance(self._detector, SpectralWaterDetector):
+            raster = self._geotiff_raster_loader.load(path)
+            return self._detector.detect(raster)
+
+        return self._detector.detect(image)
+
+        return self._detector.detect(image)
 
     def _process_single(self, pair: ImagePair) -> FloodComparisonResult:
         """Process one pair inside its own failure boundary.
