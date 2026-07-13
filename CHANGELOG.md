@@ -52,7 +52,19 @@ All notable changes to this project will be documented in this file.
 - Automated tests for partial Sentinel-2 band description handling
 - Productive support for partially missing Sentinel-2 band descriptions
 - Automated integration testing for partial Sentinel-2 band descriptions in batch processing
-- 135 automated tests in the complete test suite
+- NDWI spectral index calculation foundation
+- MNDWI spectral index calculation foundation
+- Pure NumPy-based spectral index implementation independent from image processing
+- Spectral water detection foundation using Sentinel-2 Green and NIR bands
+- NDWI threshold-based water mask generation
+- Spectral water coverage calculation
+- Compatible `WaterDetectionResult` output for integration with existing FloodVision pipeline
+- Spectral detector adapter for integration into existing batch processing architecture
+- Strategy-compatible spectral detection architecture alongside RGB-based detection
+- Automated tests for spectral water detection
+- Automated integration tests for spectral processing workflow
+- 166 automated tests in the complete test suite
+
 
 ### Improved
 
@@ -66,14 +78,30 @@ All notable changes to this project will be documented in this file.
 - Replaced redundant individual Sentinel-2 band metadata tests with parameterized test coverage
 - Improved maintainability and scalability of Sentinel-2 metadata tests
 - Prepared the project architecture for future Sentinel-2 and NDWI processing
+- Extended FloodVision from RGB-based water detection towards physical spectral analysis
+- Improved architecture flexibility through interchangeable detection strategies
+- Prepared the processing pipeline for future satellite-based flood monitoring workflows
+- Improved scalability for Sentinel-2 multispectral analysis
+- Improved flood detection architecture through separation of spectral analysis and image-based detection
+- Improved maintainability by introducing reusable spectral processing components
+- Prepared FloodVision for future multispectral classification workflows
 
 ### Planned
 
-- Sentinel-2 imagery support
-- Extended multispectral GeoTIFF raster loading
-- Integration of Sentinel-2 band metadata into raster processing workflows
-- Support for non-RGB raster workflows
-- Automated tests for additional multispectral raster processing scenarios
+- Complete integration of spectral water detection into the production batch workflow
+- Automatic Sentinel-2 NDWI and MNDWI based flood detection
+- Spectral index based flood classification independent from RGB appearance
+- Sentinel-2 GeoTIFF workflow using native spectral bands (B03, B08, B11)
+- Automatic water mask generation from multispectral raster data
+- Comparison of RGB-based and spectral-based water detection methods
+- Improved flood detection accuracy using multispectral information
+- Sentinel-2 satellite data import workflow
+- Support for additional satellite imagery sources
+- GIS visualization improvements for spectral flood products
+- Export of spectral flood detection results as GIS-compatible products
+- Temporal analysis of flood development using multiple satellite acquisitions
+- Integration of additional spectral indices for environmental monitoring
+- Future AI-based semantic segmentation experiments for flood detection
 
 ---
 
