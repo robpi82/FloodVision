@@ -63,7 +63,7 @@ All notable changes to this project will be documented in this file.
 - Strategy-compatible spectral detection architecture alongside RGB-based detection
 - Automated tests for spectral water detection
 - Automated integration tests for spectral processing workflow
-- 166 automated tests in the complete test suite
+- 174 automated tests in the complete test suite
 
 
 ### Improved
@@ -85,6 +85,11 @@ All notable changes to this project will be documented in this file.
 - Improved flood detection architecture through separation of spectral analysis and image-based detection
 - Improved maintainability by introducing reusable spectral processing components
 - Prepared FloodVision for future multispectral classification workflows
+- Excluded invalid and NoData raster pixels from spectral water classification
+- Excluded invalid raster pixels from spectral water coverage calculations
+- Added shape validation for spectral validity masks
+- Added safe handling for rasters without any valid pixels
+- Added automated tests for invalid, masked, and fully NoData raster areas
 
 ### Planned
 

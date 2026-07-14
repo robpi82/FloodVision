@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-pink)
-![Tests](https://img.shields.io/badge/tests-166%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-174%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -17,7 +17,7 @@ Professional desktop application for flood detection using computer vision, imag
 
 FloodVision compares two images of the same location ("Before" and "After") and automatically detects newly flooded areas.
 
-The current stable release provides a complete GeoTIFF and GIS raster processing workflow. Development is focused on multispectral raster processing, Sentinel-2 support, and spectral water detection using physical satellite information.
+The current stable release provides a complete GeoTIFF and GIS raster processing workflow. Development in v0.9.0 extends FloodVision with multispectral raster processing, Sentinel-2 support, spectral indices, and NoData-aware spectral water detection.
 
 ---
 
@@ -137,9 +137,7 @@ Currently under development for FloodVision v0.9.0:
 * Resolution of B04, B03, and B02 from the actual raster band order
 * Integration of Sentinel-2 band descriptions into productive GeoTIFF processing
 * Complete Sentinel-2 band metadata catalog
-* Foundation for future Sentinel-2 imagery support
-* Foundation for future non-RGB raster processing workflows
-* NDWI spectral index calculation foundation
+* NDWI spectral index calculation
 * MNDWI spectral index calculation foundation
 * NumPy-based spectral index processing independent from image processing
 * Spectral water detection using Sentinel-2 Green and NIR bands
@@ -150,6 +148,11 @@ Currently under development for FloodVision v0.9.0:
 * Strategy-compatible spectral detection architecture alongside RGB-based detection
 * Automated spectral water detection tests
 * Automated spectral batch integration tests
+* NoData-aware spectral water detection
+* Exclusion of invalid raster pixels from spectral water masks
+* Exclusion of invalid raster pixels from water coverage statistics
+* Validation of spectral validity-mask dimensions
+* Safe handling of rasters without valid pixels
 
 ### GeoTIFF Information Panel
 
@@ -232,7 +235,10 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 * Spectral water detection tests
 * Spectral detector integration tests
 * Spectral batch processing integration tests
-* Complete regression test suite with 166 passing tests
+* Valid-mask shape validation tests
+* Invalid-pixel exclusion tests
+* Fully masked raster handling tests
+* Complete regression test suite with 174 passing tests
 
 ---
 
@@ -307,7 +313,7 @@ python -m pytest -v
 Current development status:
 
 ```text
-128 passed, 3 warnings
+174 passed, 5 warnings
 ```
 
 ---
@@ -350,26 +356,44 @@ FloodVision
 │   ├── config.py
 │   ├── exceptions.py
 │   ├── geotiff_compatibility.py
+│   ├── geotiff_export.py
 │   ├── geotiff_image_adapter.py
 │   ├── geotiff_loader.py
 │   ├── geotiff_raster_loader.py
 │   ├── image_loader.py
 │   ├── mask_generator.py
 │   ├── report_generator.py
+│   ├── sentinel2_band_resolver.py
 │   ├── sentinel2_bands.py
+│   ├── spectral_band_extractor.py
+│   ├── spectral_detector.py
+│   ├── spectral_detector_adapter.py
+│   ├── spectral_indices.py
+│   ├── spectral_water_detection.py
+│   ├── stretch.py
 │   ├── utils.py
 │   ├── visualization.py
 │   └── water_detection.py
 │
 ├── tests/
 │   ├── conftest.py
+│   ├── test_app_settings.py
 │   ├── test_batch_geotiff_integration.py
 │   ├── test_geotiff_compatibility.py
+│   ├── test_geotiff_export.py
 │   ├── test_geotiff_image_adapter.py
 │   ├── test_geotiff_info_panel.py
 │   ├── test_geotiff_loader.py
 │   ├── test_geotiff_raster_loader.py
-│   └── test_sentinel2_bands.py
+│   ├── test_multispectral_config.py
+│   ├── test_sentinel2_band_resolver.py
+│   ├── test_sentinel2_bands.py
+│   ├── test_spectral_band_extractor.py
+│   ├── test_spectral_batch_integration.py
+│   ├── test_spectral_detector.py
+│   ├── test_spectral_indices.py
+│   ├── test_spectral_water_detection.py
+│   └── test_stretch.py
 │
 ├── gui_main.py
 ├── main.py
@@ -456,18 +480,19 @@ Currently implemented on the development branch:
 * MNDWI spectral index calculation foundation
 * Spectral water detection using Sentinel-2 Green and NIR bands
 * NDWI threshold-based flood mask generation
+* NoData-aware spectral water detection
+* Invalid-pixel exclusion from masks and coverage calculations
 * Spectral detection adapter integrated into the processing architecture
 * Automated spectral processing tests
-* 166 automated tests currently passing
+* 174 automated tests currently passing
 
-Planned development:
+Remaining development for v0.9.0:
 
-* Complete Sentinel-2 production workflow
-* Automatic satellite data import
-* Temporal flood monitoring using multiple acquisitions
-* Additional spectral indices
-* GIS visualization improvements
-* AI-assisted flood segmentation experiments
+* Complete Sentinel-2 Before/After integration testing
+* Verify that PNG/JPEG and HSV detection remain unchanged
+* Manual desktop application test
+* Final README and CHANGELOG review
+* Release v0.9.0
 
 ---
 
@@ -509,56 +534,60 @@ Completed:
 * Automatic band resolution from raster descriptions
 * NDWI and MNDWI spectral index foundation
 * Spectral water detection foundation
+* NoData-aware spectral water classification
+* Invalid-pixel exclusion from spectral masks and coverage statistics
 * Integration architecture for spectral flood detection
 * Automated regression and integration testing
-* 166 automated tests
+* 174 automated tests
 
 Remaining development:
 
-* Full Sentinel-2 satellite data workflow
-* Automated satellite acquisition
-* Multi-temporal flood analysis
-* Additional spectral indices
-* Advanced GIS visualization
-
+* Complete Sentinel-2 Before/After integration test
+* Verify legacy RGB and HSV workflows
+* Manual desktop application test
+* Final documentation review
+* Release v0.9.0
 
 ### Version 0.10.0
 
-**Operational Sentinel-2 Flood Monitoring**
+**Operational Sentinel-2 Flood Analysis**
 
 Planned development:
 
-* Complete Sentinel-2 imagery workflow
-* Automatic satellite data ingestion
+* Productive selection between NDWI and MNDWI
+* Processing of real Sentinel-2 Level-2A products
+* Sentinel-2 imagery import workflow
+* Spectral flood visualizations
+* NDWI and MNDWI result layers
+* Multi-index flood classification
+* GIS-ready spectral analysis outputs
 * Multi-temporal flood monitoring
-* Automated flood event analysis
-* Extended spectral classification
-* 
 
 ### Version 0.11.0
 
-### Version 0.11.0
-
-**AI-Assisted Flood Detection**
+**Advanced Raster Processing**
 
 Planned development:
 
-* AI-assisted flood classification
-* Deep learning experiments
-* Semantic segmentation models
-* U-Net based flood mapping
-* PyTorch integration
+* Landsat imagery support
+* Additional spectral indices
+* Support for additional satellite imagery sources
+* Performance improvements for large raster datasets
+* Extended GIS export capabilities
+* Advanced raster processing workflows
 
 ### Version 1.0.0
 
-**AI Flood Segmentation**
+**AI-Assisted Flood Segmentation**
 
 Planned development:
 
 * AI-based flood segmentation
-* Deep Learning models
+* Semantic segmentation models
 * U-Net integration
 * PyTorch support
+* Model training and evaluation
+* Combination of classical, spectral, and AI-based detection approaches
 
 ---
 
