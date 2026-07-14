@@ -484,8 +484,14 @@ class BatchProcessor:
                 is_geotiff,
             )
 
-            before = self._detector.detect(before_image)
-            after = self._detector.detect(after_image)
+            before = self._detect_water(
+                before_image,
+                pair.before_path,
+            )
+            after = self._detect_water(
+                after_image,
+                pair.after_path,
+            )
 
             comparison = change_detection.compare_masks(
                 before.mask,
