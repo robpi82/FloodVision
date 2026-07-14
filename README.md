@@ -486,24 +486,31 @@ Currently implemented on the development branch:
 * NDWI spectral index calculation
 * MNDWI spectral index calculation foundation
 * Spectral water detection using Sentinel-2 Green and NIR bands
-* NDWI threshold-based flood mask generation
+* NDWI threshold-based water mask generation
 * NoData-aware spectral water detection
 * Invalid-pixel exclusion from masks and coverage calculations
 * Spectral detection adapter integrated into the processing architecture
-* Automated spectral processing tests
-* 179 automated tests currently passing
-* Productive Sentinel-2 Before/After batch workflow
-* Automatic routing of Sentinel-2 GeoTIFFs to the spectral detector
+* Productive Sentinel-2 Before/After batch workflow in the backend
+* Automatic routing of Sentinel-2 GeoTIFFs to the spectral detector in batch processing
 * End-to-end spectral flood change detection
 * Georeferenced export of spectral flood masks
 * Shared Before/After validity-mask handling
 * NoData-aware flood change statistics
 * Exclusion of invalid pixels from water coverage, new-water percentage, and net increase
+* Automated spectral processing, regression, and integration tests
+* Manual verification of the existing PNG/JPEG desktop workflow
+* 179 automated tests currently passing
+
+Current GUI limitation:
+
+* The desktop application currently uses the HSV-based detector
+* Sentinel-2 NDWI detection is currently available through the backend and batch-processing architecture
+* GUI selection between HSV and spectral detection is planned for v0.10.0
 
 Remaining development for v0.9.0:
 
-* Manual desktop application test
 * Final README and CHANGELOG review
+* Final regression test
 * Release v0.9.0
 
 ---
@@ -546,25 +553,21 @@ Completed:
 * Automatic band resolution from raster descriptions
 * NDWI and MNDWI spectral index foundation
 * Spectral water detection foundation
-* NoData-aware spectral water classification
-* Invalid-pixel exclusion from spectral masks and coverage statistics
-* Integration architecture for spectral flood detection
-* Automated regression and integration testing
+* Productive spectral detection routing in backend batch processing
 * Complete synthetic Sentinel-2 Before/After integration test
-* Productive spectral detection routing in batch processing
 * Georeferenced spectral flood mask export validation
+* NoData-aware spectral water classification
 * NoData-aware Before/After change detection
 * Shared validity-mask calculation for both observations
-* Invalid-pixel exclusion from all flood statistics
+* Invalid-pixel exclusion from spectral masks, coverage values, and flood statistics
+* Preservation and manual verification of the existing PNG/JPEG HSV workflow
+* Automated regression and integration testing
 * 179 automated tests
 
 Remaining development:
 
-* Complete Sentinel-2 Before/After integration test
-* Verify legacy RGB and HSV workflows
-* Manual desktop application test
 * Final documentation review
-* Complete Sentinel-2 Before/After integration test
+* Final regression test
 * Release v0.9.0
 
 ### Version 0.10.0
@@ -573,6 +576,7 @@ Remaining development:
 
 Planned development:
 
+* GUI selection between HSV and Sentinel-2 spectral detection
 * Productive selection between NDWI and MNDWI
 * Processing of real Sentinel-2 Level-2A products
 * Sentinel-2 imagery import workflow
