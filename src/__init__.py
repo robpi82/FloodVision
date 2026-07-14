@@ -15,4 +15,4 @@ This package contains the application's core modules:
 * :mod:`src.gui`             -- PySide6 desktop application (presentation only)
 """
 
-__version__ = "0.7.1"
+__version__ = "0.9.0"

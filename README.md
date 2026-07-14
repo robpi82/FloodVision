@@ -4,8 +4,8 @@
 
 # 🌊 FloodVision
 
-![Stable Version](https://img.shields.io/badge/stable-v0.8.0-red)
-![Development Version](https://img.shields.io/badge/development-v0.9.0-yellow)
+![Stable Version](https://img.shields.io/badge/stable-v0.9.0-brightgreen)
+![Development Version](https://img.shields.io/badge/development-v0.10.0-yellow)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-pink)
@@ -466,7 +466,7 @@ The current stable release includes:
 
 **Sentinel-2 & Multispectral Raster Foundation**
 
-Currently implemented on the development branch:
+Included in the v0.9.0 release:
 
 * Multispectral GeoTIFF band selection
 * Configurable source band selection
@@ -544,7 +544,7 @@ Completed development:
 
 ### Version 0.9.0
 
-**Sentinel-2 & Multispectral Raster Foundation — In Development**
+**Sentinel-2 & Multispectral Raster Foundation — Released**
 
 Completed:
 
@@ -568,7 +568,7 @@ Remaining development:
 
 * Final documentation review
 * Final regression test
-* Release v0.9.0
+
 
 ### Version 0.10.0
 
