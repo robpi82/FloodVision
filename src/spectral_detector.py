@@ -3,16 +3,6 @@
 This module provides a spectral alternative to HSV colour detection.
 Instead of analysing RGB appearance, it uses physical spectral
 relationships such as NDWI to identify water surfaces.
-
-Architecture:
-    GeoTIFF raster
-        -> spectral bands
-        -> NDWI calculation
-        -> binary water mask
-        -> WaterDetectionResult
-
-The detector follows the same result contract as HSVWaterDetector,
-allowing both approaches to be exchanged through WaterSegmentationStrategy.
 """
 
 from __future__ import annotations
@@ -27,26 +17,16 @@ from src.water_detection import WaterDetectionResult
 
 
 class SpectralWaterDetector:
-    """Detect water using Sentinel-2 spectral information.
-
-    The detector can operate directly on Sentinel-2 GeoTIFF raster data
-    by automatically resolving the required bands:
-
-        B03 -> Green
-        B08 -> Near Infrared
-
-    It also supports direct band arrays for isolated testing.
-    """
+    """Detect water using Sentinel-2 spectral information."""
 
     def __init__(
         self,
         ndwi_threshold: float = 0.1,
     ) -> None:
-        """Initialise spectral detector.
+        """Initialise the spectral detector.
 
         Args:
-            ndwi_threshold:
-                Minimum NDWI value classified as water.
+            ndwi_threshold: Minimum NDWI value classified as water.
         """
         self._ndwi_threshold = ndwi_threshold
 
@@ -56,45 +36,37 @@ class SpectralWaterDetector:
     ) -> WaterDetectionResult:
         """Detect water directly from a Sentinel-2 raster.
 
-        Required bands are resolved automatically:
-
-            B03 -> Green
-            B08 -> Near Infrared
+        Invalid and NoData pixels are excluded from classification and
+        water-coverage statistics.
 
         Args:
-            raster:
-                Loaded Sentinel-2 GeoTIFF raster data.
+            raster: Loaded Sentinel-2 GeoTIFF raster data.
 
         Returns:
             Standard FloodVision water detection result.
         """
-        green = get_spectral_band(
-            raster,
-            "B03",
-        )
-
-        nir = get_spectral_band(
-            raster,
-            "B08",
-        )
+        green = get_spectral_band(raster, "B03")
+        nir = get_spectral_band(raster, "B08")
 
         return self.detect_from_bands(
             green,
             nir,
+            valid_mask=raster.valid_mask,
         )
 
     def detect_from_bands(
         self,
         green: np.ndarray,
         nir: np.ndarray,
+        valid_mask: np.ndarray | None = None,
     ) -> WaterDetectionResult:
         """Detect water from Sentinel-2 Green and NIR bands.
 
         Args:
-            green:
-                Sentinel-2 B03 band.
-            nir:
-                Sentinel-2 B08 band.
+            green: Sentinel-2 B03 band.
+            nir: Sentinel-2 B08 band.
+            valid_mask: Optional validity mask. Invalid pixels are excluded
+                from classification and coverage statistics.
 
         Returns:
             Standard FloodVision water detection result.
@@ -107,10 +79,12 @@ class SpectralWaterDetector:
         mask = spectral_water_detection.ndwi_to_mask(
             ndwi,
             threshold=self._ndwi_threshold,
+            valid_mask=valid_mask,
         )
 
         coverage = spectral_water_detection.spectral_water_coverage_percent(
             mask,
+            valid_mask=valid_mask,
         )
 
         rgb_placeholder = np.zeros(
