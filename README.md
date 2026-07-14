@@ -238,7 +238,10 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 * Valid-mask shape validation tests
 * Invalid-pixel exclusion tests
 * Fully masked raster handling tests
-* Complete regression test suite with 174 passing tests
+* Complete regression test suite with 175 passing tests
+* End-to-end Sentinel-2 Before/After batch integration test
+* Productive spectral detector routing test
+* Georeferenced spectral flood mask export validation
 
 ---
 
@@ -484,7 +487,11 @@ Currently implemented on the development branch:
 * Invalid-pixel exclusion from masks and coverage calculations
 * Spectral detection adapter integrated into the processing architecture
 * Automated spectral processing tests
-* 174 automated tests currently passing
+* 175 automated tests currently passing
+* Productive Sentinel-2 Before/After batch workflow
+* Automatic routing of Sentinel-2 GeoTIFFs to the spectral detector
+* End-to-end spectral flood change detection
+* Georeferenced export of spectral flood masks
 
 Remaining development for v0.9.0:
 
@@ -538,7 +545,10 @@ Completed:
 * Invalid-pixel exclusion from spectral masks and coverage statistics
 * Integration architecture for spectral flood detection
 * Automated regression and integration testing
-* 174 automated tests
+* 175 automated tests
+* Complete synthetic Sentinel-2 Before/After integration test
+* Productive spectral detection routing in batch processing
+* Georeferenced spectral flood mask export validation
 
 Remaining development:
 
@@ -546,6 +556,7 @@ Remaining development:
 * Verify legacy RGB and HSV workflows
 * Manual desktop application test
 * Final documentation review
+* Complete Sentinel-2 Before/After integration test
 * Release v0.9.0
 
 ### Version 0.10.0

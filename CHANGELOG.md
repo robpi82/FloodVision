@@ -63,7 +63,11 @@ All notable changes to this project will be documented in this file.
 - Strategy-compatible spectral detection architecture alongside RGB-based detection
 - Automated tests for spectral water detection
 - Automated integration tests for spectral processing workflow
-- 174 automated tests in the complete test suite
+- Added a complete synthetic Sentinel-2 Before/After batch integration test
+- Added end-to-end validation of NDWI-based flood change detection
+- Added validation of georeferenced spectral flood mask export
+- Increased the complete regression test suite to 175 passing tests
+- 175 automated tests in the complete test suite
 
 
 ### Improved
@@ -90,6 +94,9 @@ All notable changes to this project will be documented in this file.
 - Added shape validation for spectral validity masks
 - Added safe handling for rasters without any valid pixels
 - Added automated tests for invalid, masked, and fully NoData raster areas
+- Routed spectral water detection through the productive batch-processing workflow
+- Ensured `SpectralWaterDetector` receives GeoTIFF raster data instead of RGB Pillow images
+- Preserved the existing PNG, JPEG, and HSV-based detection workflow
 
 ### Planned
 
