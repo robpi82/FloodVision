@@ -68,6 +68,10 @@ All notable changes to this project will be documented in this file.
 - Added validation of georeferenced spectral flood mask export
 - Increased the complete regression test suite to 175 passing tests
 - 175 automated tests in the complete test suite
+- Added NoData-aware Before/After flood change detection
+- Added shared validity-mask handling for paired raster observations
+- Added automated tests for invalid-pixel exclusion and fully masked raster comparisons
+- Increased the complete regression test suite to 179 passing tests
 
 
 ### Improved
@@ -97,6 +101,9 @@ All notable changes to this project will be documented in this file.
 - Routed spectral water detection through the productive batch-processing workflow
 - Ensured `SpectralWaterDetector` receives GeoTIFF raster data instead of RGB Pillow images
 - Preserved the existing PNG, JPEG, and HSV-based detection workflow
+- Excluded invalid and NoData pixels from water coverage, new-water percentage, and net flood increase calculations
+- Extended `WaterDetectionResult` with an optional validity mask
+- Combined Before and After validity masks before flood-change analysis
 
 ### Planned
 
