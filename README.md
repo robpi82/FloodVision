@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-pink)
-![Tests](https://img.shields.io/badge/tests-174%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-179%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
