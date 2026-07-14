@@ -450,7 +450,7 @@ class BatchProcessor:
 
         return self._detector.detect(image)
 
-        return self._detector.detect(image)
+
 
     def _process_single(self, pair: ImagePair) -> FloodComparisonResult:
         """Process one pair inside its own failure boundary.
