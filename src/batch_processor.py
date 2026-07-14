@@ -20,7 +20,7 @@ Public API:
 """
 
 from __future__ import annotations
-
+import numpy as np
 import logging
 import time
 from collections.abc import Callable
@@ -493,9 +493,18 @@ class BatchProcessor:
                 pair.after_path,
             )
 
+            valid_mask: np.ndarray | None = None
+
+            if before.valid_mask is not None and after.valid_mask is not None:
+                valid_mask = (
+                        before.valid_mask.astype(bool, copy=False)
+                        & after.valid_mask.astype(bool, copy=False)
+                )
+
             comparison = change_detection.compare_masks(
                 before.mask,
                 after.mask,
+                valid_mask=valid_mask,
             )
             self._save_products(pair, before, after, comparison, geo_metadata)
         except Exception as error:  # noqa: BLE001 -- intentional batch boundary

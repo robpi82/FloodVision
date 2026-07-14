@@ -98,3 +98,11 @@ class SpectralWaterDetector:
             mask=mask,
             water_coverage_percent=coverage,
         )
+
+        return WaterDetectionResult(
+            image_rgb=rgb_placeholder,
+            raw_mask=mask,
+            mask=mask,
+            water_coverage_percent=coverage,
+            valid_mask=valid_mask,
+        )

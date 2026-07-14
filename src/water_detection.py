@@ -58,25 +58,37 @@ class HSVRange:
                 lower bound exceeds its upper bound.
         """
         for name, low, high, maximum in zip(
-            self._CHANNELS, self.lower, self.upper, self._MAXIMA
+            self._CHANNELS,
+            self.lower,
+            self.upper,
+            self._MAXIMA,
         ):
             if not (0 <= low <= maximum and 0 <= high <= maximum):
                 raise ValueError(
                     f"{name} bounds must lie in [0, {maximum}], "
                     f"got lower={low}, upper={high}."
                 )
+
             if low > high:
-                raise ValueError(f"{name} lower bound {low} > upper bound {high}.")
+                raise ValueError(
+                    f"{name} lower bound {low} > upper bound {high}."
+                )
 
     @property
     def lower_array(self) -> np.ndarray:
         """The lower bound as the uint8 array ``cv2.inRange`` expects."""
-        return np.array(self.lower, dtype=np.uint8)
+        return np.array(
+            self.lower,
+            dtype=np.uint8,
+        )
 
     @property
     def upper_array(self) -> np.ndarray:
         """The upper bound as the uint8 array ``cv2.inRange`` expects."""
-        return np.array(self.upper, dtype=np.uint8)
+        return np.array(
+            self.upper,
+            dtype=np.uint8,
+        )
 
 
 @dataclass(frozen=True)
@@ -84,34 +96,42 @@ class WaterDetectionResult:
     """Immutable result bundle of one water-detection run.
 
     Attributes:
-        image_rgb: The analysed image as an RGB uint8 array (single source
-            for all downstream products, e.g. the overlay).
-        raw_mask: Binary mask directly after thresholding, before cleanup.
-            Kept for debugging and parameter tuning.
-        mask: Final binary mask after morphological cleanup
+        image_rgb: The analysed image as an RGB uint8 array. It is the
+            source for downstream visualization products such as overlays.
+        raw_mask: Binary mask directly after thresholding and before
+            morphological cleanup. It is retained for debugging and
+            parameter tuning.
+        mask: Final binary mask after optional cleanup
             (255 = water, 0 = non-water).
-        water_coverage_percent: Share of water pixels in the final mask.
+        water_coverage_percent: Share of valid pixels classified as water.
+        valid_mask: Optional boolean mask identifying pixels that are valid
+            for statistical evaluation. The mask must have the same spatial
+            dimensions as ``mask``. ``None`` means all pixels are valid.
     """
 
     image_rgb: RGBImageArray
     raw_mask: MaskArray
     mask: MaskArray
     water_coverage_percent: float
+    valid_mask: np.ndarray | None = None
 
 
 class WaterSegmentationStrategy(Protocol):
     """Contract for every water segmentation implementation.
 
     Any object with a matching ``detect`` method satisfies this protocol
-    (structural typing) -- no inheritance required. This is the seam where
-    Version 0.4 will plug in an ML-based segmenter.
+    through structural typing. This is the seam where a future AI-based
+    segmenter can be integrated.
     """
 
-    def detect(self, image: Image.Image) -> WaterDetectionResult:
+    def detect(
+        self,
+        image: Image.Image,
+    ) -> WaterDetectionResult:
         """Segment water in the given image.
 
         Args:
-            image: Input image (any Pillow mode; implementations convert).
+            image: Input image in any Pillow mode.
 
         Returns:
             The detection result bundle.
@@ -123,8 +143,8 @@ class HSVWaterDetector:
     """Classical water detector based on HSV colour thresholding.
 
     All tuning parameters are injected via the constructor with defaults
-    from :mod:`src.config` (dependency injection): tests can pass extreme
-    values, notebooks can sweep parameters, and no global state is touched.
+    from :mod:`src.config`. Tests can therefore pass custom values without
+    modifying global state.
     """
 
     def __init__(
@@ -140,57 +160,74 @@ class HSVWaterDetector:
         Args:
             hsv_range: HSV window classified as water. Defaults to the
                 thresholds defined in :mod:`src.config`.
-            blur_kernel: Gaussian kernel size ``(width, height)``; both
-                values must be positive and odd (OpenCV requirement).
-            morph_kernel_size: Structuring element diameter for cleanup.
-            open_iterations: Opening iterations (speck removal).
-            close_iterations: Closing iterations (hole filling).
+            blur_kernel: Gaussian kernel size ``(width, height)``. Both
+                values must be positive and odd.
+            morph_kernel_size: Structuring-element diameter for cleanup.
+            open_iterations: Opening iterations for speck removal.
+            close_iterations: Closing iterations for hole filling.
 
         Raises:
-            ValueError: If the blur kernel dimensions are invalid.
+            ValueError: If the blur-kernel dimensions are invalid.
         """
-        if any(side < 1 or side % 2 == 0 for side in blur_kernel):
+        if any(
+            side < 1 or side % 2 == 0
+            for side in blur_kernel
+        ):
             raise ValueError(
-                f"Gaussian kernel sides must be positive odd ints, got {blur_kernel}."
+                "Gaussian kernel sides must be positive odd ints, "
+                f"got {blur_kernel}."
             )
+
         self._hsv_range = hsv_range or HSVRange(
-            lower=config.WATER_HSV_LOWER, upper=config.WATER_HSV_UPPER
+            lower=config.WATER_HSV_LOWER,
+            upper=config.WATER_HSV_UPPER,
         )
         self._blur_kernel = blur_kernel
         self._morph_kernel_size = morph_kernel_size
         self._open_iterations = open_iterations
         self._close_iterations = close_iterations
 
-    def detect(self, image: Image.Image) -> WaterDetectionResult:
+    def detect(
+        self,
+        image: Image.Image,
+    ) -> WaterDetectionResult:
         """Run the full classical detection pipeline on one image.
 
         Steps:
             1. Convert the Pillow image to an RGB uint8 array.
-            2. Gaussian blur to suppress pixel noise before thresholding.
-            3. Convert RGB -> HSV (thresholds are defined in HSV).
-            4. ``cv2.inRange`` produces the raw binary mask.
-            5. Morphological cleanup via :func:`src.mask_generator.clean_mask`.
+            2. Apply Gaussian blur to suppress pixel noise.
+            3. Convert RGB to HSV.
+            4. Create the raw mask using ``cv2.inRange``.
+            5. Clean the mask using morphological operations.
 
         Args:
-            image: The input image in any Pillow mode.
+            image: Input image in any Pillow mode.
 
         Returns:
-            A :class:`WaterDetectionResult` with raw mask, cleaned mask,
-            the RGB array and the water coverage percentage.
+            A detection result containing the RGB array, masks, coverage,
+            and no explicit validity mask. For standard images, all pixels
+            are considered valid.
         """
-        # ``convert("RGB")`` normalises every input mode (L, RGBA, P, I;16)
-        # to exactly three uint8 channels -- one invariant for the whole
-        # downstream pipeline instead of per-mode special cases.
-        rgb: RGBImageArray = np.asarray(image.convert("RGB"), dtype=np.uint8)
+        rgb: RGBImageArray = np.asarray(
+            image.convert("RGB"),
+            dtype=np.uint8,
+        )
 
-        # Sigma 0 lets OpenCV derive the Gaussian's standard deviation from
-        # the kernel size -- the sensible default unless tuned explicitly.
-        blurred = cv2.GaussianBlur(rgb, self._blur_kernel, 0)
+        blurred = cv2.GaussianBlur(
+            rgb,
+            self._blur_kernel,
+            0,
+        )
 
-        hsv = cv2.cvtColor(blurred, cv2.COLOR_RGB2HSV)
+        hsv = cv2.cvtColor(
+            blurred,
+            cv2.COLOR_RGB2HSV,
+        )
 
         raw_mask: MaskArray = cv2.inRange(
-            hsv, self._hsv_range.lower_array, self._hsv_range.upper_array
+            hsv,
+            self._hsv_range.lower_array,
+            self._hsv_range.upper_array,
         )
 
         mask = mask_generator.clean_mask(
@@ -199,17 +236,21 @@ class HSVWaterDetector:
             open_iterations=self._open_iterations,
             close_iterations=self._close_iterations,
         )
+
         coverage = mask_generator.mask_coverage_percent(mask)
 
         logger.info(
-            "Water detection finished: %.2f %% water coverage (HSV lower=%s, upper=%s)",
+            "Water detection finished: %.2f %% water coverage "
+            "(HSV lower=%s, upper=%s)",
             coverage,
             self._hsv_range.lower,
             self._hsv_range.upper,
         )
+
         return WaterDetectionResult(
             image_rgb=rgb,
             raw_mask=raw_mask,
             mask=mask,
             water_coverage_percent=coverage,
+            valid_mask=None,
         )
