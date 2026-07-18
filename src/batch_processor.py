@@ -342,6 +342,16 @@ class BatchProcessor:
 
         return self._multispectral_rgb_bands
 
+    def _load_detection_rasters(
+        self,
+        pair: ImagePair,
+    ) -> tuple[GeoTiffRasterData, GeoTiffRasterData]:
+        """Load the raw GeoTIFF raster pair without converting it to RGB images."""
+        before_raster = self._geotiff_raster_loader.load(pair.before_path)
+        after_raster = self._geotiff_raster_loader.load(pair.after_path)
+
+        return before_raster, after_raster
+
     def _load_detection_images(
         self,
         pair: ImagePair,
@@ -386,8 +396,7 @@ class BatchProcessor:
                 self._loader.load(pair.after_path),
             )
 
-        before_raster = self._geotiff_raster_loader.load(pair.before_path)
-        after_raster = self._geotiff_raster_loader.load(pair.after_path)
+        before_raster, after_raster = self._load_detection_rasters(pair)
 
         before_bands = self._resolve_rgb_bands(before_raster)
         after_bands = self._resolve_rgb_bands(after_raster)
