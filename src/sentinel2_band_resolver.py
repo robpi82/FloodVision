@@ -17,3 +17,13 @@ class Sentinel2BandResolver:
             ("B04", "B03", "B02"),
             available_codes=available_codes,
         )
+
+    def resolve_ndwi_indices(
+            self,
+            available_codes: tuple[str | None, ...],
+    ) -> tuple[int, ...]:
+        """Resolve Green and NIR band indices required for NDWI."""
+        return get_sentinel2_band_indices(
+            ("B03", "B08"),
+            available_codes=available_codes,
+        )

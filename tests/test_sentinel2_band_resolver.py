@@ -40,3 +40,27 @@ def test_resolver_rejects_missing_required_rgb_band() -> None:
         resolver.resolve_rgb_indices(
             ("B08", "B11", "B12"),
         )
+
+
+def test_resolver_returns_ndwi_indices_from_raster_band_order() -> None:
+    """NDWI indices are resolved from the actual Sentinel-2 band order."""
+    resolver = Sentinel2BandResolver()
+
+    indices = resolver.resolve_ndwi_indices(
+        ("B08", "B04", "B03", "B02"),
+    )
+
+    assert indices == (2, 0)
+
+
+def test_resolver_rejects_missing_required_ndwi_band() -> None:
+    """Missing required NDWI bands raise a clear error."""
+    resolver = Sentinel2BandResolver()
+
+    with pytest.raises(
+        ValueError,
+        match="Required Sentinel-2 band B08 is not available in raster bands",
+    ):
+        resolver.resolve_ndwi_indices(
+            ("B04", "B03", "B02"),
+        )
