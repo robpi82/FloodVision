@@ -51,3 +51,37 @@ def test_calculate_ndwi_rejects_different_shapes() -> None:
         assert "same shape" in str(error)
     else:
         raise AssertionError("Expected ValueError for mismatched band shapes")
+
+def test_calculate_ndwi_applies_valid_mask() -> None:
+    green = np.array(
+        [
+            [900.0, 800.0],
+            [500.0, 1000.0],
+        ],
+        dtype=np.float32,
+    )
+    nir = np.array(
+        [
+            [100.0, 1200.0],
+            [500.0, 0.0],
+        ],
+        dtype=np.float32,
+    )
+    valid_mask = np.array(
+        [
+            [True, False],
+            [True, True],
+        ],
+        dtype=bool,
+    )
+
+    result = calculate_ndwi(
+        green,
+        nir,
+        valid_mask=valid_mask,
+    )
+
+    assert np.isclose(result[0, 0], 0.8)
+    assert np.isnan(result[0, 1])
+    assert np.isclose(result[1, 0], 0.0)
+    assert np.isclose(result[1, 1], 1.0)
