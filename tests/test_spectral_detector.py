@@ -113,3 +113,9 @@ def test_spectral_detector_excludes_invalid_raster_pixels() -> None:
     assert result.mask[1, 0] == 255
     assert result.mask[1, 1] == 0
     assert result.water_coverage_percent == pytest.approx(200.0 / 3.0)
+
+    assert result.valid_mask is not None
+    np.testing.assert_array_equal(
+        result.valid_mask,
+        raster.valid_mask,
+    )

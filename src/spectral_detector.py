@@ -74,6 +74,7 @@ class SpectralWaterDetector:
         ndwi = calculate_ndwi(
             green,
             nir,
+            valid_mask=valid_mask,
         )
 
         mask = spectral_water_detection.ndwi_to_mask(
@@ -90,13 +91,6 @@ class SpectralWaterDetector:
         rgb_placeholder = np.zeros(
             (*mask.shape, 3),
             dtype=np.uint8,
-        )
-
-        return WaterDetectionResult(
-            image_rgb=rgb_placeholder,
-            raw_mask=mask,
-            mask=mask,
-            water_coverage_percent=coverage,
         )
 
         return WaterDetectionResult(
