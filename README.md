@@ -5,11 +5,11 @@
 # 🌊 FloodVision
 
 ![Stable Version](https://img.shields.io/badge/stable-v0.9.0-brightgreen)
-![Development Version](https://img.shields.io/badge/development-v0.10.0-yellow)
+![Development Version](https://img.shields.io/badge/development-v0.9.1-yellow)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-pink)
-![Tests](https://img.shields.io/badge/tests-179%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-182%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -17,7 +17,7 @@ Professional desktop application for flood detection using computer vision, imag
 
 FloodVision compares two images of the same location ("Before" and "After") and automatically detects newly flooded areas.
 
-The current stable release provides a complete GeoTIFF and GIS raster processing workflow. Development in v0.9.0 extends FloodVision with multispectral raster processing, Sentinel-2 support, spectral indices, and NoData-aware spectral water detection.
+The current stable release v0.9.0 provides multispectral GeoTIFF processing, Sentinel-2 support, spectral indices, and NoData-aware spectral water detection. Development in v0.9.1 focuses on improving NDWI band resolution, validity-mask handling, and the reliability of the spectral processing architecture.
 
 ---
 
@@ -112,7 +112,7 @@ Available since FloodVision v0.8.0:
 
 ### Multispectral Raster Support
 
-Currently under development for FloodVision v0.9.0:
+Current development status for FloodVision v0.9.1:
 
 * Multispectral GeoTIFF support
 * Configurable raster band selection
@@ -144,7 +144,6 @@ Currently under development for FloodVision v0.9.0:
 * NDWI threshold-based water mask generation
 * Spectral water coverage calculation
 * Compatible `WaterDetectionResult` integration
-* Spectral detector adapter for batch processing integration
 * Strategy-compatible spectral detection architecture alongside RGB-based detection
 * Automated spectral water detection tests
 * Automated spectral batch integration tests
@@ -238,7 +237,7 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 * Valid-mask shape validation tests
 * Invalid-pixel exclusion tests
 * Fully masked raster handling tests
-* Complete regression test suite with 179 passing tests
+* Complete regression test suite with 182 passing tests
 * End-to-end Sentinel-2 Before/After batch integration test
 * Productive spectral detector routing test
 * Georeferenced spectral flood mask export validation
@@ -562,7 +561,7 @@ Completed:
 * Invalid-pixel exclusion from spectral masks, coverage values, and flood statistics
 * Preservation and manual verification of the existing PNG/JPEG HSV workflow
 * Automated regression and integration testing
-* 179 automated tests
+* 182 automated tests
 
 Remaining development:
 

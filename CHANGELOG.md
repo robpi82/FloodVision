@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [0.9.1] - 2026-07-19
+
+### Added
+
+* Sentinel-2 NDWI band resolution for Green (B03) and NIR (B08) based on the actual raster band order
+* Validation and clear error reporting when required NDWI bands are missing
+* Valid-data mask support in NDWI calculations
+* Automated tests for Sentinel-2 NDWI band resolution
+* Automated regression tests for NDWI valid-data mask handling
+* Automated regression test for preservation of raster validity masks in spectral water detection
+
+### Improved
+
+* Refactored GeoTIFF raster loading in the batch processor into a reusable raw-raster loading method
+* Improved separation between raw raster loading and RGB image conversion
+* Improved NDWI processing by excluding invalid and NoData pixels directly during spectral-index calculation
+* Improved consistency of validity-mask propagation through the spectral water-detection pipeline
+* Improved reliability of NoData-aware Sentinel-2 water detection
+* Expanded the complete regression test suite to 182 passing tests
+
+### Fixed
+
+* Fixed `SpectralWaterDetector` not forwarding the raster validity mask to NDWI calculation
+* Fixed `SpectralWaterDetector` not preserving the validity mask in `WaterDetectionResult`
+* Removed unreachable duplicate result-return code in spectral water detection
+* Removed the unused `SpectralDetectorAdapter` placeholder after confirming that productive spectral detection is routed directly through `GeoTiffRasterData`
+* Synchronized `develop-v0.9.1` with all changes from `develop-v0.9.0`
+
+---
+
 ### [0.9.0] - 2026-07-14
 
 ### Added
