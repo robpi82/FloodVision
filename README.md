@@ -4,7 +4,7 @@
 
 # 🌊 FloodVision
 
-![Stable Version](https://img.shields.io/badge/stable-v0.9.1-brightgreen)
+![Stable Version](https://img.shields.io/badge/stable-v0.9.2-brightgreen)
 ![Development Version](https://img.shields.io/badge/development-v0.10.0-yellow)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
