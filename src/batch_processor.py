@@ -20,7 +20,7 @@ Public API:
 """
 
 from __future__ import annotations
-
+import numpy as np
 import logging
 import time
 from collections.abc import Callable
@@ -41,6 +41,7 @@ from src.image_loader import ImageLoader, ImagePair, find_image_pairs
 from src.sentinel2_band_resolver import Sentinel2BandResolver
 from src.stretch import compute_shared_stretch
 from src.water_detection import WaterDetectionResult, WaterSegmentationStrategy
+from src.spectral_detector import SpectralWaterDetector
 
 logger = logging.getLogger(__name__)
 
@@ -445,6 +446,21 @@ class BatchProcessor:
 
         return before_image, after_image
 
+    def _detect_water(
+            self,
+            image: Image.Image,
+            path: Path,
+    ) -> WaterDetectionResult:
+        """Run water detection using the configured detection strategy."""
+
+        if isinstance(self._detector, SpectralWaterDetector):
+            raster = self._geotiff_raster_loader.load(path)
+            return self._detector.detect(raster)
+
+        return self._detector.detect(image)
+
+
+
     def _process_single(self, pair: ImagePair) -> FloodComparisonResult:
         """Process one pair inside its own failure boundary.
 
@@ -477,12 +493,27 @@ class BatchProcessor:
                 is_geotiff,
             )
 
-            before = self._detector.detect(before_image)
-            after = self._detector.detect(after_image)
+            before = self._detect_water(
+                before_image,
+                pair.before_path,
+            )
+            after = self._detect_water(
+                after_image,
+                pair.after_path,
+            )
+
+            valid_mask: np.ndarray | None = None
+
+            if before.valid_mask is not None and after.valid_mask is not None:
+                valid_mask = (
+                        before.valid_mask.astype(bool, copy=False)
+                        & after.valid_mask.astype(bool, copy=False)
+                )
 
             comparison = change_detection.compare_masks(
                 before.mask,
                 after.mask,
+                valid_mask=valid_mask,
             )
             self._save_products(pair, before, after, comparison, geo_metadata)
         except Exception as error:  # noqa: BLE001 -- intentional batch boundary

@@ -4,12 +4,12 @@
 
 # 🌊 FloodVision
 
-![Stable Version](https://img.shields.io/badge/stable-v0.8.0-red)
-![Development Version](https://img.shields.io/badge/development-v0.9.0-yellow)
+![Stable Version](https://img.shields.io/badge/stable-v0.9.0-brightgreen)
+![Development Version](https://img.shields.io/badge/development-v0.10.0-yellow)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-pink)
-![Tests](https://img.shields.io/badge/tests-128%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-179%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -17,7 +17,7 @@ Professional desktop application for flood detection using computer vision, imag
 
 FloodVision compares two images of the same location ("Before" and "After") and automatically detects newly flooded areas.
 
-The current stable release provides a complete GeoTIFF and GIS raster processing workflow. Development is now focused on multispectral raster processing and Sentinel-2 support.
+The current stable release provides a complete GeoTIFF and GIS raster processing workflow. Development in v0.9.0 extends FloodVision with multispectral raster processing, Sentinel-2 support, spectral indices, and NoData-aware spectral water detection.
 
 ---
 
@@ -137,8 +137,22 @@ Currently under development for FloodVision v0.9.0:
 * Resolution of B04, B03, and B02 from the actual raster band order
 * Integration of Sentinel-2 band descriptions into productive GeoTIFF processing
 * Complete Sentinel-2 band metadata catalog
-* Foundation for future Sentinel-2 imagery support
-* Foundation for future non-RGB raster processing workflows
+* NDWI spectral index calculation
+* MNDWI spectral index calculation foundation
+* NumPy-based spectral index processing independent from image processing
+* Spectral water detection using Sentinel-2 Green and NIR bands
+* NDWI threshold-based water mask generation
+* Spectral water coverage calculation
+* Compatible `WaterDetectionResult` integration
+* Spectral detector adapter for batch processing integration
+* Strategy-compatible spectral detection architecture alongside RGB-based detection
+* Automated spectral water detection tests
+* Automated spectral batch integration tests
+* NoData-aware spectral water detection
+* Exclusion of invalid raster pixels from spectral water masks
+* Exclusion of invalid raster pixels from water coverage statistics
+* Validation of spectral validity-mask dimensions
+* Safe handling of rasters without valid pixels
 
 ### GeoTIFF Information Panel
 
@@ -215,6 +229,23 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 * Batch integration tests for partially missing Sentinel-2 band descriptions
 * Sentinel-2 band-description-based RGB selection integration tests
 * Missing Sentinel-2 RGB band validation tests
+* NDWI calculation tests
+* MNDWI calculation tests
+* Spectral band extraction tests
+* Spectral water detection tests
+* Spectral detector integration tests
+* Spectral batch processing integration tests
+* Valid-mask shape validation tests
+* Invalid-pixel exclusion tests
+* Fully masked raster handling tests
+* Complete regression test suite with 179 passing tests
+* End-to-end Sentinel-2 Before/After batch integration test
+* Productive spectral detector routing test
+* Georeferenced spectral flood mask export validation
+* NoData-aware change detection tests
+* Shared Before/After validity-mask tests
+* Invalid-pixel exclusion from flood statistics
+* Fully invalid raster comparison tests
 
 ---
 
@@ -289,7 +320,7 @@ python -m pytest -v
 Current development status:
 
 ```text
-128 passed, 3 warnings
+174 passed, 5 warnings
 ```
 
 ---
@@ -332,26 +363,44 @@ FloodVision
 │   ├── config.py
 │   ├── exceptions.py
 │   ├── geotiff_compatibility.py
+│   ├── geotiff_export.py
 │   ├── geotiff_image_adapter.py
 │   ├── geotiff_loader.py
 │   ├── geotiff_raster_loader.py
 │   ├── image_loader.py
 │   ├── mask_generator.py
 │   ├── report_generator.py
+│   ├── sentinel2_band_resolver.py
 │   ├── sentinel2_bands.py
+│   ├── spectral_band_extractor.py
+│   ├── spectral_detector.py
+│   ├── spectral_detector_adapter.py
+│   ├── spectral_indices.py
+│   ├── spectral_water_detection.py
+│   ├── stretch.py
 │   ├── utils.py
 │   ├── visualization.py
 │   └── water_detection.py
 │
 ├── tests/
 │   ├── conftest.py
+│   ├── test_app_settings.py
 │   ├── test_batch_geotiff_integration.py
 │   ├── test_geotiff_compatibility.py
+│   ├── test_geotiff_export.py
 │   ├── test_geotiff_image_adapter.py
 │   ├── test_geotiff_info_panel.py
 │   ├── test_geotiff_loader.py
 │   ├── test_geotiff_raster_loader.py
-│   └── test_sentinel2_bands.py
+│   ├── test_multispectral_config.py
+│   ├── test_sentinel2_band_resolver.py
+│   ├── test_sentinel2_bands.py
+│   ├── test_spectral_band_extractor.py
+│   ├── test_spectral_batch_integration.py
+│   ├── test_spectral_detector.py
+│   ├── test_spectral_indices.py
+│   ├── test_spectral_water_detection.py
+│   └── test_stretch.py
 │
 ├── gui_main.py
 ├── main.py
@@ -417,35 +466,52 @@ The current stable release includes:
 
 **Sentinel-2 & Multispectral Raster Foundation**
 
-Currently implemented on the development branch:
+Included in the v0.9.0 release:
 
 * Multispectral GeoTIFF band selection
 * Configurable source band selection
-* Support for selecting arbitrary raster bands for RGB image generation
 * User-configurable multispectral RGB band selection via `config.yaml`
 * Validation of multispectral RGB band configurations
 * Validation of band count, integer types, and non-negative band indices
 * Productive multispectral GeoTIFF processing in the batch workflow
 * Automatic multi-band GeoTIFF raster loading for water detection
-* Integration of configured RGB band selection into productive flood processing
 * Preservation of existing PNG, JPEG, and three-band GeoTIFF workflows
 * Sentinel-2 spectral band metadata foundation
 * Immutable Sentinel-2 band metadata model
 * Complete Sentinel-2 band metadata catalog
 * Metadata definitions for B02, B03, B04, B05, B06, B07, B08, B8A, B09, B10, B11, and B12
-* Native spatial resolution metadata for supported Sentinel-2 bands
-* Normalized and validated Sentinel-2 band lookup
-* Automated integration testing for four-band GeoTIFF processing
-* Parameterized automated tests for Sentinel-2 band metadata
-* 129 automated tests currently passing
+* Automatic Sentinel-2 RGB band selection from GeoTIFF band descriptions
+* Validation of required Sentinel-2 RGB bands
+* Support for partially missing Sentinel-2 band descriptions
+* NDWI spectral index calculation
+* MNDWI spectral index calculation foundation
+* Spectral water detection using Sentinel-2 Green and NIR bands
+* NDWI threshold-based water mask generation
+* NoData-aware spectral water detection
+* Invalid-pixel exclusion from masks and coverage calculations
+* Spectral detection adapter integrated into the processing architecture
+* Productive Sentinel-2 Before/After batch workflow in the backend
+* Automatic routing of Sentinel-2 GeoTIFFs to the spectral detector in batch processing
+* End-to-end spectral flood change detection
+* Georeferenced export of spectral flood masks
+* Shared Before/After validity-mask handling
+* NoData-aware flood change statistics
+* Exclusion of invalid pixels from water coverage, new-water percentage, and net increase
+* Automated spectral processing, regression, and integration tests
+* Manual verification of the existing PNG/JPEG desktop workflow
+* 179 automated tests currently passing
 
-Planned development:
+Current GUI limitation:
 
-* Sentinel-2 imagery support
-* Extended multispectral GeoTIFF raster loading
-* Integration of Sentinel-2 band metadata into raster processing workflows
-* Support for non-RGB raster workflows
-* Additional automated tests for multispectral raster processing
+* The desktop application currently uses the HSV-based detector
+* Sentinel-2 NDWI detection is currently available through the backend and batch-processing architecture
+* GUI selection between HSV and spectral detection is planned for v0.10.0
+
+Remaining development for v0.9.0:
+
+* Final README and CHANGELOG review
+* Final regression test
+* Release v0.9.0
 
 ---
 
@@ -478,49 +544,47 @@ Completed development:
 
 ### Version 0.9.0
 
-**Sentinel-2 & Multispectral Raster Foundation — In Development**
+**Sentinel-2 & Multispectral Raster Foundation — Released**
 
-Currently implemented on the development branch:
+Completed:
 
-* Multispectral GeoTIFF band selection
-* Configurable raster band selection
-* User-configurable RGB band selection via `config.yaml`
-* Validation of multispectral band configurations
-* Validation of band count, integer types, and non-negative band indices
-* Productive multispectral GeoTIFF processing in the batch workflow
-* Automatic multi-band GeoTIFF raster loading for water detection
-* Integration of configured RGB band selection into productive flood processing
-* Preservation of existing PNG, JPEG, and three-band GeoTIFF workflows
-* Sentinel-2 spectral band metadata foundation
-* Immutable Sentinel-2 band metadata model
-* Complete Sentinel-2 band metadata catalog
-* Metadata definitions for B02, B03, B04, B05, B06, B07, B08, B8A, B09, B10, B11, and B12
-* Native spatial resolution metadata for supported Sentinel-2 bands
-* Normalized and validated Sentinel-2 band lookup
-* Automated integration testing for four-band GeoTIFF processing
-* Parameterized automated tests for Sentinel-2 band metadata
-* 129 automated tests
+* Multispectral GeoTIFF processing foundation
+* Sentinel-2 band metadata system
+* Automatic band resolution from raster descriptions
+* NDWI and MNDWI spectral index foundation
+* Spectral water detection foundation
+* Productive spectral detection routing in backend batch processing
+* Complete synthetic Sentinel-2 Before/After integration test
+* Georeferenced spectral flood mask export validation
+* NoData-aware spectral water classification
+* NoData-aware Before/After change detection
+* Shared validity-mask calculation for both observations
+* Invalid-pixel exclusion from spectral masks, coverage values, and flood statistics
+* Preservation and manual verification of the existing PNG/JPEG HSV workflow
+* Automated regression and integration testing
+* 179 automated tests
 
-Planned development:
+Remaining development:
 
-* Sentinel-2 imagery support
-* Extended multispectral GeoTIFF raster loading
-* Integration of Sentinel-2 band metadata into raster processing workflows
-* Support for non-RGB raster workflows
-* Additional automated tests for multispectral raster processing
+* Final documentation review
+* Final regression test
+
 
 ### Version 0.10.0
 
-**NDWI Water Detection**
+**Operational Sentinel-2 Flood Analysis**
 
 Planned development:
 
-* NDWI-based water detection
-* Green and Near-Infrared band processing
-* Configurable NDWI thresholds
-* NDWI raster visualization
-* NDWI flood change detection
-* Georeferenced NDWI output products
+* GUI selection between HSV and Sentinel-2 spectral detection
+* Productive selection between NDWI and MNDWI
+* Processing of real Sentinel-2 Level-2A products
+* Sentinel-2 imagery import workflow
+* Spectral flood visualizations
+* NDWI and MNDWI result layers
+* Multi-index flood classification
+* GIS-ready spectral analysis outputs
+* Multi-temporal flood monitoring
 
 ### Version 0.11.0
 
@@ -529,21 +593,24 @@ Planned development:
 Planned development:
 
 * Landsat imagery support
-* Extended multispectral workflows
-* Advanced raster processing
-* Additional GIS export capabilities
+* Additional spectral indices
+* Support for additional satellite imagery sources
 * Performance improvements for large raster datasets
+* Extended GIS export capabilities
+* Advanced raster processing workflows
 
 ### Version 1.0.0
 
-**AI Flood Segmentation**
+**AI-Assisted Flood Segmentation**
 
 Planned development:
 
 * AI-based flood segmentation
-* Deep Learning models
+* Semantic segmentation models
 * U-Net integration
 * PyTorch support
+* Model training and evaluation
+* Combination of classical, spectral, and AI-based detection approaches
 
 ---
 
