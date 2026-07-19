@@ -20,7 +20,7 @@ Public API:
 """
 
 from __future__ import annotations
-
+import numpy as np
 import logging
 import time
 from collections.abc import Callable
@@ -28,13 +28,20 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
+from PIL import Image
+
 from src import change_detection, config, geotiff_export, mask_generator, visualization
 from src.change_detection import MaskComparison
 from src.exceptions import GeoTiffPairError
 from src.geotiff_compatibility import GeoTiffCompatibilityValidator
+from src.geotiff_image_adapter import GeoTiffImageAdapter
 from src.geotiff_loader import GeoTiffLoader, GeoTiffMetadata
+from src.geotiff_raster_loader import GeoTiffRasterData, GeoTiffRasterLoader
 from src.image_loader import ImageLoader, ImagePair, find_image_pairs
+from src.sentinel2_band_resolver import Sentinel2BandResolver
+from src.stretch import compute_shared_stretch
 from src.water_detection import WaterDetectionResult, WaterSegmentationStrategy
+from src.spectral_detector import SpectralWaterDetector
 
 logger = logging.getLogger(__name__)
 
@@ -187,16 +194,20 @@ class BatchProcessor:
     """
 
     def __init__(
-        self,
-        loader: ImageLoader,
-        detector: WaterSegmentationStrategy,
-        before_dir: Path = config.BEFORE_DATA_DIR,
-        after_dir: Path = config.AFTER_DATA_DIR,
-        output_dir: Path = config.OUTPUT_DATA_DIR,
-        on_pair_done: Callable[[FloodComparisonResult, int, int], None] | None = None,
-        is_cancelled: Callable[[], bool] | None = None,
-        geotiff_loader: GeoTiffLoader | None = None,
-        compatibility_validator: GeoTiffCompatibilityValidator | None = None,
+            self,
+            loader: ImageLoader,
+            detector: WaterSegmentationStrategy,
+            before_dir: Path = config.BEFORE_DATA_DIR,
+            after_dir: Path = config.AFTER_DATA_DIR,
+            output_dir: Path = config.OUTPUT_DATA_DIR,
+            on_pair_done: Callable[[FloodComparisonResult, int, int], None] | None = None,
+            is_cancelled: Callable[[], bool] | None = None,
+            geotiff_loader: GeoTiffLoader | None = None,
+            compatibility_validator: GeoTiffCompatibilityValidator | None = None,
+            geotiff_raster_loader: GeoTiffRasterLoader | None = None,
+            geotiff_image_adapter: GeoTiffImageAdapter | None = None,
+            sentinel2_band_resolver: Sentinel2BandResolver | None = None,
+            multispectral_rgb_bands: tuple[int, int, int] = config.MULTISPECTRAL_RGB_BANDS,
     ) -> None:
         """Initialise the batch processor.
 
@@ -231,8 +242,18 @@ class BatchProcessor:
         self._is_cancelled = is_cancelled
         self._geotiff_loader = geotiff_loader or GeoTiffLoader()
         self._compatibility_validator = (
-            compatibility_validator or GeoTiffCompatibilityValidator()
+                compatibility_validator or GeoTiffCompatibilityValidator()
         )
+        self._geotiff_raster_loader = (
+                geotiff_raster_loader or GeoTiffRasterLoader()
+        )
+        self._geotiff_image_adapter = (
+                geotiff_image_adapter or GeoTiffImageAdapter()
+        )
+        self._sentinel2_band_resolver = (
+                sentinel2_band_resolver or Sentinel2BandResolver()
+        )
+        self._multispectral_rgb_bands = multispectral_rgb_bands
 
     def run(self) -> BatchResult:
         """Process all matching image pairs.
@@ -296,6 +317,150 @@ class BatchProcessor:
         except Exception:  # noqa: BLE001 -- observer isolation boundary
             logger.exception("on_pair_done observer raised; batch continues")
 
+    def _resolve_rgb_bands(
+        self,
+        raster: GeoTiffRasterData,
+    ) -> tuple[int, int, int]:
+        """Resolve the RGB band selection for a single raster.
+
+        Band descriptions take precedence over the configured default: they
+        describe the *actual* band order of this file, while the configuration
+        can only describe an expected one. Rasters without any description
+        fall back to the configured multispectral selection.
+
+        Args:
+            raster: The raster whose band order is to be resolved.
+
+        Returns:
+            Three zero-based band indices in RGB order.
+        """
+        if any(
+            description is not None for description in raster.band_descriptions
+        ):
+            return self._sentinel2_band_resolver.resolve_rgb_indices(
+                raster.band_descriptions,
+            )
+
+        return self._multispectral_rgb_bands
+
+    def _load_detection_rasters(
+        self,
+        pair: ImagePair,
+    ) -> tuple[GeoTiffRasterData, GeoTiffRasterData]:
+        """Load the raw GeoTIFF raster pair without converting it to RGB images."""
+        before_raster = self._geotiff_raster_loader.load(pair.before_path)
+        after_raster = self._geotiff_raster_loader.load(pair.after_path)
+
+        return before_raster, after_raster
+
+    def _load_detection_images(
+        self,
+        pair: ImagePair,
+        is_geotiff: bool,
+    ) -> tuple[Image.Image, Image.Image]:
+        """Load both images of a pair for water detection.
+
+        The pair -- not the single file -- is the unit of loading, because the
+        two rasters have to be converted to RGB *together*.
+
+        A GeoTIFF carries raw sensor values (typically uint16 DNs), which must
+        be mapped onto the 0-255 display range the detector works on. If that
+        mapping is derived from each raster in isolation, its value range
+        differs between the two: newly flooded, dark pixels lower the minimum
+        of the *after* raster, and the resulting offset shifts *every* pixel of
+        that raster -- including physically unchanged land. Change detection
+        would then partly measure the normalisation instead of the scene.
+
+        Both rasters are therefore converted with one shared stretch derived
+        from the pair as a whole, which maps identical raster values onto
+        identical display values in both images.
+
+        Ordinary image files (PNG, JPEG) are already on an absolute 0-255
+        scale and keep using the existing loader unchanged.
+
+        Args:
+            pair: The before/after pair to load.
+            is_geotiff: Whether the pair was classified as a georeferenced
+                GeoTIFF pair by :meth:`_ensure_geospatial_compatibility`.
+
+        Returns:
+            The before and after images, ready for detection.
+
+        Raises:
+            GeoTiffPairError: If the two rasters resolve to different RGB band
+                selections, which would make the images incomparable.
+            ImageLoadError: If a file cannot be read.
+        """
+        if not is_geotiff:
+            return (
+                self._loader.load(pair.before_path),
+                self._loader.load(pair.after_path),
+            )
+
+        before_raster, after_raster = self._load_detection_rasters(pair)
+
+        before_bands = self._resolve_rgb_bands(before_raster)
+        after_bands = self._resolve_rgb_bands(after_raster)
+
+        if before_bands != after_bands:
+            raise GeoTiffPairError(
+                pair.name,
+                "the before and after rasters resolve to different RGB band "
+                f"selections ({before_bands} vs {after_bands}); comparing "
+                "different spectral bands would be a wrong result",
+            )
+
+        stretch = compute_shared_stretch(
+            before_raster,
+            after_raster,
+            bands=before_bands,
+        )
+
+        if stretch is None:
+            logger.warning(
+                "No shared value range could be derived for GeoTIFF pair %s; "
+                "falling back to the per-image stretch, which biases the "
+                "comparison between the two images",
+                pair.name,
+            )
+        else:
+            logger.info(
+                "GeoTIFF pair %s uses a shared display stretch [%.4g, %.4g] "
+                "over bands %s",
+                pair.name,
+                stretch.lo,
+                stretch.hi,
+                before_bands,
+            )
+
+        before_image = self._geotiff_image_adapter.to_image(
+            before_raster,
+            bands=before_bands,
+            stretch=stretch,
+        )
+        after_image = self._geotiff_image_adapter.to_image(
+            after_raster,
+            bands=after_bands,
+            stretch=stretch,
+        )
+
+        return before_image, after_image
+
+    def _detect_water(
+            self,
+            image: Image.Image,
+            path: Path,
+    ) -> WaterDetectionResult:
+        """Run water detection using the configured detection strategy."""
+
+        if isinstance(self._detector, SpectralWaterDetector):
+            raster = self._geotiff_raster_loader.load(path)
+            return self._detector.detect(raster)
+
+        return self._detector.detect(image)
+
+
+
     def _process_single(self, pair: ImagePair) -> FloodComparisonResult:
         """Process one pair inside its own failure boundary.
 
@@ -321,9 +486,35 @@ class BatchProcessor:
         start = time.perf_counter()
         try:
             geo_metadata = self._ensure_geospatial_compatibility(pair)
-            before = self._detector.detect(self._loader.load(pair.before_path))
-            after = self._detector.detect(self._loader.load(pair.after_path))
-            comparison = change_detection.compare_masks(before.mask, after.mask)
+            is_geotiff = geo_metadata is not None
+
+            before_image, after_image = self._load_detection_images(
+                pair,
+                is_geotiff,
+            )
+
+            before = self._detect_water(
+                before_image,
+                pair.before_path,
+            )
+            after = self._detect_water(
+                after_image,
+                pair.after_path,
+            )
+
+            valid_mask: np.ndarray | None = None
+
+            if before.valid_mask is not None and after.valid_mask is not None:
+                valid_mask = (
+                        before.valid_mask.astype(bool, copy=False)
+                        & after.valid_mask.astype(bool, copy=False)
+                )
+
+            comparison = change_detection.compare_masks(
+                before.mask,
+                after.mask,
+                valid_mask=valid_mask,
+            )
             self._save_products(pair, before, after, comparison, geo_metadata)
         except Exception as error:  # noqa: BLE001 -- intentional batch boundary
             elapsed = time.perf_counter() - start

@@ -7,7 +7,15 @@ from src.geotiff_raster_loader import GeoTiffRasterData
 
 def make(data, mask=None):
     mask = np.ones(data.shape[1:], dtype=bool) if mask is None else mask
-    return GeoTiffRasterData(Path("test.tif"), data, mask, None)
+    band_descriptions = (None,) * data.shape[0]
+
+    return GeoTiffRasterData(
+        path=Path("test.tif"),
+        data=data,
+        valid_mask=mask,
+        nodata=None,
+        band_descriptions=band_descriptions,
+    )
 
 
 def test_uint8_rgb():
@@ -55,3 +63,56 @@ def test_non_finite_rejected():
     data[0, 0, 0] = np.nan
     with pytest.raises(ValueError, match="non-finite"):
         GeoTiffImageAdapter().to_image(make(data))
+
+def test_selected_bands_are_converted_to_rgb():
+    data = np.zeros((4, 2, 2), dtype=np.uint8)
+    data[0] = 10
+    data[1] = 20
+    data[2] = 30
+    data[3] = 40
+
+    image = GeoTiffImageAdapter().to_image(
+        make(data),
+        bands=(3, 2, 1),
+    )
+
+    pixels = np.asarray(image)
+
+    np.testing.assert_array_equal(pixels[0, 0], [40, 30, 20])
+
+
+def test_band_selection_preserves_requested_order():
+    data = np.zeros((4, 2, 2), dtype=np.uint8)
+    data[0] = 10
+    data[1] = 20
+    data[2] = 30
+    data[3] = 40
+
+    image = GeoTiffImageAdapter().to_image(
+        make(data),
+        bands=(0, 2, 3),
+    )
+
+    pixels = np.asarray(image)
+
+    np.testing.assert_array_equal(pixels[0, 0], [10, 30, 40])
+
+
+def test_band_selection_requires_exactly_three_bands():
+    data = np.zeros((4, 2, 2), dtype=np.uint8)
+
+    with pytest.raises(ValueError, match="exactly 3 bands"):
+        GeoTiffImageAdapter().to_image(
+            make(data),
+            bands=(0, 1),
+        )
+
+
+def test_band_selection_rejects_out_of_range_band():
+    data = np.zeros((4, 2, 2), dtype=np.uint8)
+
+    with pytest.raises(ValueError, match="out of range"):
+        GeoTiffImageAdapter().to_image(
+            make(data),
+            bands=(0, 1, 4),
+        )
