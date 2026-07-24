@@ -17,7 +17,7 @@ Professional desktop application for flood detection using computer vision, imag
 
 FloodVision compares two images of the same location ("Before" and "After") and automatically detects newly flooded areas.
 
-The current stable release v0.9.0 provides multispectral GeoTIFF processing, Sentinel-2 support, spectral indices, and NoData-aware spectral water detection. Development in v0.9.1 focuses on improving NDWI band resolution, validity-mask handling, and the reliability of the spectral processing architecture.
+The current stable release v0.9.2 provides multispectral GeoTIFF processing, Sentinel-2 support, NDWI and MNDWI foundations, reliable spectral band resolution, and NoData-aware water detection with validity-mask handling. Development in v0.10.0 focuses on turning this spectral foundation into an operational Sentinel-2 flood-analysis workflow with configurable detection modes, real Sentinel-2 data workflows, spectral visualizations, and GIS-ready analysis outputs.
 
 ---
 
@@ -112,7 +112,7 @@ Available since FloodVision v0.8.0:
 
 ### Multispectral Raster Support
 
-Current development status for FloodVision v0.9.1:
+Available in the current stable release FloodVision v0.9.2:
 
 * Multispectral GeoTIFF support
 * Configurable raster band selection
@@ -316,10 +316,10 @@ Run the complete automated test suite:
 python -m pytest -v
 ```
 
-Current development status:
+Latest verified stable baseline:
 
 ```text
-174 passed, 5 warnings
+182 passed, 6 warnings
 ```
 
 ---
@@ -373,7 +373,6 @@ FloodVision
 │   ├── sentinel2_bands.py
 │   ├── spectral_band_extractor.py
 │   ├── spectral_detector.py
-│   ├── spectral_detector_adapter.py
 │   ├── spectral_indices.py
 │   ├── spectral_water_detection.py
 │   ├── stretch.py
@@ -431,86 +430,54 @@ FloodVision
 
 ## Stable Release
 
-### Version 0.8.0
+### Version 0.9.2
+
+**NDWI Reliability & Spectral Processing Improvements**
 
 The current stable release includes:
 
-* Complete GeoTIFF support foundation
-* Rasterio integration
-* GeoTIFF metadata extraction
-* Coordinate Reference System (CRS) and EPSG extraction
-* Raster bounds and pixel resolution extraction
-* GeoTIFF pair compatibility validation
-* Automatic spatial compatibility checks
-* GeoTIFF raster data loading
-* Single-band and multi-band raster support
+* Multispectral GeoTIFF processing
+* Sentinel-2 spectral band metadata and raster-aware band resolution
+* Automatic Sentinel-2 RGB band selection from GeoTIFF band descriptions
+* NDWI spectral water detection
+* MNDWI spectral-index foundation
+* NDWI band resolution for B03 and B08 based on the actual raster band order
+* Validation and clear error reporting when required spectral bands are missing
 * NoData-aware raster processing
-* GeoTIFF image adapter
-* Three-band raster to RGB image conversion
-* Productive GeoTIFF processing pipeline
-* GeoTIFF Information Panel
-* Automatic geospatial metadata display
-* Georeferenced GeoTIFF flood mask export
-* Preservation of CRS, affine transform, raster dimensions, and spatial bounds
-* GIS-ready flood detection results
-* Automated GeoTIFF testing
-* Real-world GeoTIFF validation tooling
-* Existing PNG and JPEG workflows preserved
+* Valid-data mask support in NDWI calculations
+* Invalid-pixel exclusion from spectral water masks and statistics
+* Reliable validity-mask propagation through the spectral detection pipeline
+* Separation of raw GeoTIFF raster loading from RGB image conversion
+* Direct spectral processing through `GeoTiffRasterData`
+* Georeferenced flood-mask export
+* GIS-ready outputs for QGIS and ArcGIS Pro
+* Existing PNG and JPEG HSV workflows preserved
+* Complete regression suite with 182 passing automated tests
 
 ---
 
 ## Current Development
 
-### Version 0.9.0
+### Version 0.10.0
 
-**Sentinel-2 & Multispectral Raster Foundation**
+**Operational Sentinel-2 Flood Analysis**
 
-Included in the v0.9.0 release:
+Current development focus:
 
-* Multispectral GeoTIFF band selection
-* Configurable source band selection
-* User-configurable multispectral RGB band selection via `config.yaml`
-* Validation of multispectral RGB band configurations
-* Validation of band count, integer types, and non-negative band indices
-* Productive multispectral GeoTIFF processing in the batch workflow
-* Automatic multi-band GeoTIFF raster loading for water detection
-* Preservation of existing PNG, JPEG, and three-band GeoTIFF workflows
-* Sentinel-2 spectral band metadata foundation
-* Immutable Sentinel-2 band metadata model
-* Complete Sentinel-2 band metadata catalog
-* Metadata definitions for B02, B03, B04, B05, B06, B07, B08, B8A, B09, B10, B11, and B12
-* Automatic Sentinel-2 RGB band selection from GeoTIFF band descriptions
-* Validation of required Sentinel-2 RGB bands
-* Support for partially missing Sentinel-2 band descriptions
-* NDWI spectral index calculation
-* MNDWI spectral index calculation foundation
-* Spectral water detection using Sentinel-2 Green and NIR bands
-* NDWI threshold-based water mask generation
-* NoData-aware spectral water detection
-* Invalid-pixel exclusion from masks and coverage calculations
-* Spectral detection adapter integrated into the processing architecture
-* Productive Sentinel-2 Before/After batch workflow in the backend
-* Automatic routing of Sentinel-2 GeoTIFFs to the spectral detector in batch processing
-* End-to-end spectral flood change detection
-* Georeferenced export of spectral flood masks
-* Shared Before/After validity-mask handling
-* NoData-aware flood change statistics
-* Exclusion of invalid pixels from water coverage, new-water percentage, and net increase
-* Automated spectral processing, regression, and integration tests
-* Manual verification of the existing PNG/JPEG desktop workflow
-* 179 automated tests currently passing
+* Configurable water-detection mode with HSV as the backward-compatible default
+* Programmatic selection between HSV and Sentinel-2 spectral detection
+* Dedicated detector factory in the GUI worker
+* GUI selection between HSV and Sentinel-2 spectral detection
+* Productive selection between NDWI and MNDWI
+* Processing of real Sentinel-2 Level-2A products
+* Sentinel-2 imagery import workflow
+* Spectral flood visualizations
+* NDWI and MNDWI result layers
+* Multi-index flood classification
+* GIS-ready spectral analysis outputs
+* Multi-temporal flood monitoring
 
-Current GUI limitation:
-
-* The desktop application currently uses the HSV-based detector
-* Sentinel-2 NDWI detection is currently available through the backend and batch-processing architecture
-* GUI selection between HSV and spectral detection is planned for v0.10.0
-
-Remaining development for v0.9.0:
-
-* Final README and CHANGELOG review
-* Final regression test
-* Release v0.9.0
+The first v0.10.0 implementation work focuses on making the detection strategy configurable. This prepares the desktop application to evolve from an HSV-only GUI workflow toward user-selectable HSV and Sentinel-2 spectral analysis.
 
 ---
 
@@ -541,37 +508,48 @@ Completed development:
 * Real-world GeoTIFF validation tooling
 * Full regression testing
 
-### Version 0.9.0
+### Versions 0.9.0-0.9.1
 
-**Sentinel-2 & Multispectral Raster Foundation — Released**
+**Sentinel-2 & Multispectral Raster Foundation - Released**
 
-Completed:
+Completed development:
 
 * Multispectral GeoTIFF processing foundation
 * Sentinel-2 band metadata system
 * Automatic band resolution from raster descriptions
-* NDWI and MNDWI spectral index foundation
+* NDWI and MNDWI spectral-index foundation
 * Spectral water detection foundation
 * Productive spectral detection routing in backend batch processing
-* Complete synthetic Sentinel-2 Before/After integration test
-* Georeferenced spectral flood mask export validation
+* Synthetic Sentinel-2 Before/After integration testing
+* Georeferenced spectral flood-mask export
 * NoData-aware spectral water classification
 * NoData-aware Before/After change detection
-* Shared validity-mask calculation for both observations
+* Shared validity-mask handling
 * Invalid-pixel exclusion from spectral masks, coverage values, and flood statistics
-* Preservation and manual verification of the existing PNG/JPEG HSV workflow
+* Existing PNG/JPEG HSV workflow preserved
 * Automated regression and integration testing
-* 182 automated tests
 
-Remaining development:
+### Version 0.9.2
 
-* Final documentation review
-* Final regression test
+**NDWI Reliability & Spectral Processing Improvements - Released**
 
+Completed development:
+
+* Sentinel-2 NDWI band resolution for B03 and B08
+* Validation of required NDWI bands
+* Valid-data mask support in NDWI calculations
+* Improved NoData and invalid-pixel handling
+* Reliable validity-mask propagation through spectral water detection
+* Raw GeoTIFF raster loading separated from RGB image conversion
+* `SpectralWaterDetector` validity-mask fixes
+* Removal of duplicate unreachable detection code
+* Removal of the unused `SpectralDetectorAdapter` placeholder
+* Expanded regression coverage
+* 182 passing automated tests
 
 ### Version 0.10.0
 
-**Operational Sentinel-2 Flood Analysis**
+**Operational Sentinel-2 Flood Analysis - In Development**
 
 Planned development:
 

@@ -38,27 +38,12 @@ SETTINGS_PATH: Final[Path] = config.PROJECT_ROOT / "gui_settings.json"
 
 @dataclass(frozen=True)
 class AppSettings:
-    """Immutable snapshot of all user-adjustable GUI settings.
-
-    Defaults are seeded from the validated YAML configuration, so a fresh
-    installation behaves exactly like the CLI. ``replace(settings, ...)``
-    (from :mod:`dataclasses`) is used to derive modified copies instead of
-    mutating -- the same value-object style as the backend records.
-
-    Attributes:
-        before_dir: Pre-event image directory.
-        after_dir: Post-event image directory.
-        output_dir: Product output directory.
-        hsv_lower: Lower HSV bound for water detection.
-        hsv_upper: Upper HSV bound for water detection.
-        dark_mode: ``True`` for the dark theme.
-    """
-
     before_dir: str = str(config.BEFORE_DATA_DIR)
     after_dir: str = str(config.AFTER_DATA_DIR)
     output_dir: str = str(config.OUTPUT_DATA_DIR)
     hsv_lower: tuple[int, int, int] = config.WATER_HSV_LOWER
     hsv_upper: tuple[int, int, int] = config.WATER_HSV_UPPER
+    detection_mode: str = "hsv"
     dark_mode: bool = True
 
 
@@ -101,6 +86,9 @@ def load_settings(path: Path = SETTINGS_PATH) -> AppSettings:
             ),
             hsv_lower=_as_triple(raw.get("hsv_lower"), defaults.hsv_lower),
             hsv_upper=_as_triple(raw.get("hsv_upper"), defaults.hsv_upper),
+            detection_mode=str(
+                raw.get("detection_mode", defaults.detection_mode)
+            ),
             dark_mode=bool(raw.get("dark_mode", defaults.dark_mode)),
         )
     except (json.JSONDecodeError, TypeError, ValueError):

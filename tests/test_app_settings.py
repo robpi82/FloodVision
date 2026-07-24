@@ -68,7 +68,20 @@ class TestBaselineLoading:
         assert settings.hsv_upper == (100, 200, 250)
         assert settings.dark_mode is False
 
+    def test_detection_mode_defaults_to_hsv(self) -> None:
+        """Existing installations continue to use HSV detection by default."""
+        settings = AppSettings()
 
+        assert settings.detection_mode == "hsv"
+
+    def test_detection_mode_loads_from_json(self, tmp_path: Path) -> None:
+        """A persisted detection mode is restored when settings are loaded."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, detection_mode="spectral")
+
+        settings = load_settings(settings_path)
+
+        assert settings.detection_mode == "spectral"
 # ---------------------------------------------------------------------------
 # Cross-platform directory reconciliation (the actual fix)
 # ---------------------------------------------------------------------------

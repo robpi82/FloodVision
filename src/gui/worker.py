@@ -27,9 +27,23 @@ from src.exceptions import FloodVisionError
 from src.gui.app_settings import AppSettings
 from src.image_loader import ImageLoader
 from src.water_detection import HSVRange, HSVWaterDetector
+from src.spectral_detector import SpectralWaterDetector
 
 logger = logging.getLogger(__name__)
 
+def _create_detector(
+    settings: AppSettings,
+) -> HSVWaterDetector | SpectralWaterDetector:
+    """Create the configured water-detection strategy."""
+    if settings.detection_mode == "spectral":
+        return SpectralWaterDetector()
+
+    return HSVWaterDetector(
+        hsv_range=HSVRange(
+            lower=settings.hsv_lower,
+            upper=settings.hsv_upper,
+        )
+    )
 
 class BatchWorker(QThread):
     """Runs one complete batch on a background thread.
@@ -86,11 +100,7 @@ class BatchWorker(QThread):
         survive anything the backend throws.
         """
         try:
-            detector = HSVWaterDetector(
-                hsv_range=HSVRange(
-                    lower=self._settings.hsv_lower, upper=self._settings.hsv_upper
-                )
-            )
+            detector = _create_detector(self._settings)
             output_dir = Path(self._settings.output_dir)
             processor = BatchProcessor(
                 loader=ImageLoader(),
