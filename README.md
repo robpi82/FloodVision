@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-pink)
-![Tests](https://img.shields.io/badge/tests-182%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-255%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -259,7 +259,7 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 * Valid-mask shape validation tests
 * Invalid-pixel exclusion tests
 * Fully masked raster handling tests
-* Complete regression test suite with 182 passing tests
+* Complete regression test suite with 255 passing tests
 * End-to-end Sentinel-2 Before/After batch integration test
 * Productive spectral detector routing test
 * Georeferenced spectral flood mask export validation
@@ -341,7 +341,7 @@ python -m pytest -v
 Latest verified stable baseline:
 
 ```text
-182 passed, 6 warnings
+255 passed, 6 warnings
 ```
 
 ---
