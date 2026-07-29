@@ -11,6 +11,7 @@ from src.batch_processor import BatchProcessor, ProcessingStatus
 from src.geotiff_raster_loader import GeoTiffRasterData
 from src.image_loader import ImageLoader
 from src.spectral_detector import SpectralWaterDetector
+from src.water_detection import HSVWaterDetector
 
 WIDTH = 64
 HEIGHT = 48
@@ -174,6 +175,8 @@ def test_sentinel2_before_after_pair_uses_spectral_detection(
     assert (product_dir / "overlay.png").is_file()
     assert (product_dir / "new_flood_mask.png").is_file()
     assert (product_dir / "new_flood_mask.tif").is_file()
+    assert (product_dir / "before_index.png").is_file()
+    assert (product_dir / "after_index.png").is_file()
 
     with rasterio.open(
         product_dir / "new_flood_mask.tif"
@@ -184,3 +187,38 @@ def test_sentinel2_before_after_pair_uses_spectral_detection(
         assert dataset.width == WIDTH
         assert dataset.height == HEIGHT
         assert np.count_nonzero(exported_mask == 255) == expected_flood_pixels
+
+
+def test_hsv_batch_produces_no_spectral_index_products(tmp_path: Path) -> None:
+    """HSV runs must not produce *_index.png -- there is no index to show.
+
+    Regression guard for the visualization feature: it must only activate
+    for :class:`SpectralWaterDetector` results, never silently for HSV.
+    """
+    from PIL import Image
+
+    before_dir = tmp_path / "before"
+    after_dir = tmp_path / "after"
+    output_dir = tmp_path / "output"
+    before_dir.mkdir()
+    after_dir.mkdir()
+
+    Image.new("RGB", (16, 16), color=(0, 0, 255)).save(before_dir / "photo.png")
+    Image.new("RGB", (16, 16), color=(0, 0, 255)).save(after_dir / "photo.png")
+
+    processor = BatchProcessor(
+        loader=ImageLoader(),
+        detector=HSVWaterDetector(),
+        before_dir=before_dir,
+        after_dir=after_dir,
+        output_dir=output_dir,
+    )
+
+    result = processor.run()
+
+    assert result.records[0].status is ProcessingStatus.SUCCESS
+
+    product_dir = output_dir / "photo"
+    assert (product_dir / "overlay.png").is_file()
+    assert not (product_dir / "before_index.png").exists()
+    assert not (product_dir / "after_index.png").exists()

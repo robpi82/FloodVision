@@ -38,13 +38,14 @@ The current stable release v0.9.2 provides multispectral GeoTIFF processing, Sen
 
 * Modern PySide6 desktop application
 * Dark theme
-* Before / After / Overlay / New Flood Mask preview
+* Before / After / Overlay / New Flood Mask / Spectral Index preview
 * Drag & Drop folder support
 * Folder path input
 * Folder browser integration
 * Detection-method selection between HSV and Sentinel-2 spectral analysis
 * Spectral index selection between NDWI and MNDWI
 * Configurable spectral-index threshold
+* False-colour NDWI/MNDWI visualization
 * Previous / Next image navigation
 * Zoom In
 * Zoom Out
@@ -74,6 +75,8 @@ While spectral mode is active, a second control selects the spectral index:
 The spectral-index control is disabled while HSV mode is active, and its selection is likewise persisted across restarts.
 
 A **Threshold** control alongside the spectral index sets the minimum index value classified as water, from -1.00 to 1.00 (default 0.10). A lower threshold classifies more area as water; a higher threshold classifies less. Like the spectral-index control, it is only enabled while spectral mode is active and its value is persisted across restarts.
+
+For spectral-mode runs, a fifth **Spectral Index** preview tab shows the raw NDWI/MNDWI raster as a false-colour image (blue = water-like, red/brown = land-like, grey = no data) -- a direct view of what the threshold above is actually filtering. The corresponding `before_index.png`/`after_index.png` files are written alongside the other batch outputs; HSV-mode runs produce neither the files nor a populated preview tab, since there is no continuous index to show.
 
 ### GeoTIFF & GIS Support
 
@@ -496,13 +499,13 @@ Current development focus:
 * Persistent, range-validated spectral-threshold setting - done
 * Processing of real Sentinel-2 Level-2A products
 * Sentinel-2 imagery import workflow
-* Spectral flood visualizations
-* NDWI and MNDWI result layers
+* Spectral flood visualizations - done
+* NDWI and MNDWI result layers - done
 * Multi-index flood classification
 * GIS-ready spectral analysis outputs
 * Multi-temporal flood monitoring
 
-The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis, including a choice between the NDWI and MNDWI spectral indices and a configurable classification threshold, in the settings dialog; the remaining v0.10.0 work builds the operational Sentinel-2 workflow (real imagery import, spectral visualizations, GIS-ready outputs) on top of this configurable detection strategy.
+The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis, including a choice between the NDWI and MNDWI spectral indices, a configurable classification threshold, and a false-colour visualization of the raw index raster, in the settings dialog and preview tabs; the remaining v0.10.0 work builds the operational Sentinel-2 workflow (real imagery import, GIS-ready outputs) on top of this configurable detection strategy.
 
 ---
 
@@ -581,10 +584,10 @@ Planned development:
 * GUI selection between HSV and Sentinel-2 spectral detection - done
 * Productive selection between NDWI and MNDWI - done
 * Configurable spectral-index threshold - done
+* Spectral flood visualizations - done
+* NDWI and MNDWI result layers - done
 * Processing of real Sentinel-2 Level-2A products
 * Sentinel-2 imagery import workflow
-* Spectral flood visualizations
-* NDWI and MNDWI result layers
 * Multi-index flood classification
 * GIS-ready spectral analysis outputs
 * Multi-temporal flood monitoring

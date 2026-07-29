@@ -25,5 +25,9 @@ real_world_test/
 data/before/real_world_test.tif
 data/after/real_world_test.tif
 
+# Ad-hoc local test fixtures (manual QA, not part of the project)
+data/before/flood_test.*
+data/after/flood_test.*
+
 gui_settings.json
 project_tree.txt

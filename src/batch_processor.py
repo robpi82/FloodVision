@@ -20,7 +20,7 @@ Public API:
 """
 
 from __future__ import annotations
-import numpy as np
+
 import logging
 import time
 from collections.abc import Callable
@@ -28,6 +28,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
+import numpy as np
 from PIL import Image
 
 from src import change_detection, config, geotiff_export, mask_generator, visualization
@@ -39,9 +40,9 @@ from src.geotiff_loader import GeoTiffLoader, GeoTiffMetadata
 from src.geotiff_raster_loader import GeoTiffRasterData, GeoTiffRasterLoader
 from src.image_loader import ImageLoader, ImagePair, find_image_pairs
 from src.sentinel2_band_resolver import Sentinel2BandResolver
+from src.spectral_detector import SpectralWaterDetector
 from src.stretch import compute_shared_stretch
 from src.water_detection import WaterDetectionResult, WaterSegmentationStrategy
-from src.spectral_detector import SpectralWaterDetector
 
 logger = logging.getLogger(__name__)
 
@@ -314,7 +315,7 @@ class BatchProcessor:
             return
         try:
             self._on_pair_done(record, index, total)
-        except Exception:  # noqa: BLE001 -- observer isolation boundary
+        except Exception:
             logger.exception("on_pair_done observer raised; batch continues")
 
     def _resolve_rgb_bands(
@@ -516,7 +517,7 @@ class BatchProcessor:
                 valid_mask=valid_mask,
             )
             self._save_products(pair, before, after, comparison, geo_metadata)
-        except Exception as error:  # noqa: BLE001 -- intentional batch boundary
+        except Exception as error:
             elapsed = time.perf_counter() - start
             logger.exception("Processing failed for pair %s", pair.name)
             return FloodComparisonResult(
@@ -626,14 +627,17 @@ class BatchProcessor:
     ) -> None:
         """Write all products of one pair into its own output subdirectory.
 
-        Layout (requirement of v0.4, ``new_flood_mask.tif`` added in v0.8)::
+        Layout (requirement of v0.4, ``new_flood_mask.tif`` added in v0.8,
+        ``before_index.png``/``after_index.png`` added in v0.10)::
 
             data/output/<pair-stem>/
                 before_mask.png     binary pre-event water mask
                 after_mask.png      binary post-event water mask
                 new_flood_mask.png  red-on-black newly flooded areas
                 overlay.png         AFTER image + semi-transparent red layer
-                comparison.png      four-panel review figure
+                before_index.png    false-colour NDWI/MNDWI raster (spectral only)
+                after_index.png     false-colour NDWI/MNDWI raster (spectral only)
+                comparison.png      review figure (four or six panels)
                 new_flood_mask.tif  georeferenced flood mask (GeoTIFF pairs only)
 
         Figures are saved with ``show=False``: opening dozens of blocking
@@ -662,13 +666,35 @@ class BatchProcessor:
         visualization.save_image(after.mask, out_dir / "after_mask.png")
         visualization.save_image(new_flood_rgb, out_dir / "new_flood_mask.png")
         visualization.save_image(overlay, out_dir / "overlay.png")
+
+        panels = [
+            ("Before", before.image_rgb),
+            ("After", after.image_rgb),
+            ("New flood (red)", new_flood_rgb),
+            (f"Overlay ({comparison.new_water_percent:.1f} % new water)", overlay),
+        ]
+
+        # index_values is only populated by SpectralWaterDetector (see
+        # WaterDetectionResult docstring), so HSV runs keep the original
+        # four-panel comparison and produce no *_index.png files at all.
+        if before.index_values is not None and after.index_values is not None:
+            before_index_rgb = visualization.colorize_spectral_index(
+                before.index_values, valid_mask=before.valid_mask
+            )
+            after_index_rgb = visualization.colorize_spectral_index(
+                after.index_values, valid_mask=after.valid_mask
+            )
+            visualization.save_image(before_index_rgb, out_dir / "before_index.png")
+            visualization.save_image(after_index_rgb, out_dir / "after_index.png")
+            panels.extend(
+                [
+                    ("Before (spectral index)", before_index_rgb),
+                    ("After (spectral index)", after_index_rgb),
+                ]
+            )
+
         visualization.display_panels(
-            [
-                ("Before", before.image_rgb),
-                ("After", after.image_rgb),
-                ("New flood (red)", new_flood_rgb),
-                (f"Overlay ({comparison.new_water_percent:.1f} % new water)", overlay),
-            ],
+            panels,
             suptitle=f"FloodVision change detection - {pair.name}",
             save_path=out_dir / "comparison.png",
             show=False,

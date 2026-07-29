@@ -244,3 +244,55 @@ def test_ndwi_detector_still_reads_green_and_nir_bands_from_raster() -> None:
     assert result.mask[1, 0] == 255
     assert result.mask[1, 1] == 0
 
+
+# ---------------------------------------------------------------------------
+# Raw index values exposed for visualization
+# ---------------------------------------------------------------------------
+def test_index_values_are_exposed_on_the_result() -> None:
+    """The raw NDWI/MNDWI raster is retained, not discarded after masking."""
+    green = np.array([[100, 50]], dtype=np.uint16)
+    nir = np.array([[50, 100]], dtype=np.uint16)
+
+    detector = SpectralWaterDetector(spectral_index=SPECTRAL_INDEX_NDWI)
+
+    result = detector.detect_from_bands(green, nir)
+
+    assert result.index_values is not None
+    assert result.index_values.shape == green.shape
+    np.testing.assert_allclose(
+        result.index_values,
+        [[50.0 / 150.0, -50.0 / 150.0]],
+        rtol=1e-5,
+    )
+
+
+def test_mndwi_index_values_are_exposed_on_the_result() -> None:
+    """The raw MNDWI raster is retained too, not just the NDWI one."""
+    green = np.array([[100, 50]], dtype=np.uint16)
+    swir = np.array([[50, 100]], dtype=np.uint16)
+
+    detector = SpectralWaterDetector(spectral_index=SPECTRAL_INDEX_MNDWI)
+
+    result = detector.detect_from_bands(green, swir)
+
+    assert result.index_values is not None
+    np.testing.assert_allclose(
+        result.index_values,
+        [[50.0 / 150.0, -50.0 / 150.0]],
+        rtol=1e-5,
+    )
+
+
+def test_hsv_detector_leaves_index_values_none() -> None:
+    """HSVWaterDetector has no equivalent continuous signal to expose."""
+    from PIL import Image
+
+    from src.water_detection import HSVWaterDetector
+
+    detector = HSVWaterDetector()
+    image = Image.new("RGB", (2, 2), color=(0, 0, 255))
+
+    result = detector.detect(image)
+
+    assert result.index_values is None
+

@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Final
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,6 +24,11 @@ from src.image_loader import ImageInfo
 logger = logging.getLogger(__name__)
 
 _FIGURE_SIZE_INCHES: tuple[float, float] = (10.0, 7.0)
+
+#: Rendered for NaN or invalid-mask pixels in a spectral-index false-colour
+#: image -- a neutral dark grey that reads clearly as "no data" against both
+#: the diverging colormap's blue (water-like) and red/brown (land-like) ends.
+SPECTRAL_INDEX_NO_DATA_COLOR: Final[tuple[int, int, int]] = (60, 60, 60)
 
 
 def display_image(
@@ -138,6 +144,61 @@ def save_image(array: np.ndarray, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     Image.fromarray(array).save(path)
     logger.info("Image saved to %s", path)
+
+
+def colorize_spectral_index(
+    index: np.ndarray,
+    valid_mask: np.ndarray | None = None,
+    cmap_name: str = "RdBu",
+) -> np.ndarray:
+    """Render a spectral index raster (NDWI or MNDWI) as a false-colour image.
+
+    Uses a diverging colormap so the sign of the index -- not just its
+    magnitude -- is visually obvious: high, water-like values render in
+    blue, low, land-like values in red/brown, with a neutral midpoint
+    around zero. This is a direct visualization of what the configurable
+    threshold (see :class:`~src.spectral_detector.SpectralWaterDetector`)
+    is actually filtering, complementing the binary water mask.
+
+    Args:
+        index: Two-dimensional spectral index raster, expected in the
+            ``[-1, 1]`` range that :func:`~src.spectral_indices.calculate_ndwi`
+            and :func:`~src.spectral_indices.calculate_mndwi` both produce.
+            NaN entries are rendered as no-data.
+        valid_mask: Optional validity mask. ``False`` pixels are rendered
+            as no-data regardless of their index value, matching how
+            invalid/NoData pixels are excluded elsewhere in the spectral
+            pipeline.
+        cmap_name: Name of a diverging matplotlib colormap.
+
+    Returns:
+        ``(H, W, 3)`` uint8 RGB array, ready for :func:`save_image`.
+
+    Raises:
+        ValueError: If ``index`` is not two-dimensional, or if
+            ``valid_mask`` does not match its shape.
+    """
+    if index.ndim != 2:
+        raise ValueError("Spectral index raster must be two-dimensional.")
+
+    if valid_mask is not None and valid_mask.shape != index.shape:
+        raise ValueError(
+            "Valid mask and spectral index raster must have the same shape."
+        )
+
+    # calculate_ndwi/calculate_mndwi both clip to [-1, 1]; clipping again
+    # here is a defensive normalisation step, not a correctness requirement.
+    normalized = np.clip((np.nan_to_num(index, nan=0.0) + 1.0) / 2.0, 0.0, 1.0)
+
+    colormap = plt.get_cmap(cmap_name)
+    rgb = (colormap(normalized)[..., :3] * 255).astype(np.uint8)
+
+    no_data = np.isnan(index)
+    if valid_mask is not None:
+        no_data |= ~valid_mask.astype(bool, copy=False)
+    rgb[no_data] = SPECTRAL_INDEX_NO_DATA_COLOR
+
+    return rgb
 
 
 def _build_title(info: ImageInfo | None) -> str:

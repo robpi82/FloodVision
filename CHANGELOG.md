@@ -35,10 +35,20 @@ All notable changes to this project will be documented in this file.
 - Automated tests for spectral-threshold persistence and range validation (`tests/test_app_settings.py`)
 - Automated tests for spectral-threshold pass-through in the GUI worker (`tests/test_worker.py`)
 - Automated GUI tests for the settings dialog's threshold control (`tests/test_settings_dialog.py`)
+- `index_values` field on `WaterDetectionResult`, exposing the raw NDWI/MNDWI raster that was previously computed and discarded after masking
+- `colorize_spectral_index()` in `src/visualization.py`: false-colour rendering of a spectral index raster using a diverging colormap (blue = water-like, red/brown = land-like, grey = no data)
+- `before_index.png` / `after_index.png` batch products for spectral-mode runs, showing the false-colour NDWI/MNDWI raster
+- Two additional panels in `comparison.png` for spectral-mode runs, showing the before/after spectral-index rasters alongside the existing four panels
+- Fifth "Spectral Index" preview tab in the desktop GUI, populated only for spectral-mode runs
+- `spectral_index` path on `PairEntry` (`src/gui/navigator.py`), wired through to the new preview tab
+- Automated tests for `colorize_spectral_index()` (`tests/test_visualization.py`, new)
+- Automated tests confirming `index_values` is populated for NDWI/MNDWI and left `None` for HSV (`tests/test_spectral_detector.py`)
+- Automated integration tests confirming spectral-index PNGs are produced only for spectral-mode batch runs, never for HSV (`tests/test_spectral_batch_integration.py`)
+- Automated GUI tests for the fifth preview tab, including graceful fallback when no spectral-index file exists (`tests/test_image_view.py`, new)
 
 ### Improved
 
-- Expanded the complete regression test suite to 240 passing tests
+- Expanded the complete regression test suite to 255 passing tests
 
 ---
 

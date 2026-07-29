@@ -25,6 +25,12 @@ class PairEntry:
         after_image: Original post-event image path.
         overlay: Generated overlay product path.
         new_flood_mask: Generated red-on-black change product path.
+        spectral_index: Generated false-colour NDWI/MNDWI raster path for
+            the *after* image. Only produced for spectral-mode runs (see
+            :class:`~src.spectral_detector.SpectralWaterDetector`); for HSV
+            runs this path simply does not exist on disk, and the preview
+            gracefully falls back to a placeholder (see
+            :meth:`~src.gui.image_view.ZoomableImageView.show_image`).
     """
 
     record: FloodComparisonResult
@@ -32,6 +38,7 @@ class PairEntry:
     after_image: Path
     overlay: Path
     new_flood_mask: Path
+    spectral_index: Path
 
 
 class PairNavigator:

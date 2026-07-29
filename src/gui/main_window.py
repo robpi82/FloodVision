@@ -499,6 +499,7 @@ class MainWindow(QMainWindow):
                 after_image=Path(self._settings.after_dir) / record.filename,
                 overlay=out / "overlay.png",
                 new_flood_mask=out / "new_flood_mask.png",
+                spectral_index=out / "after_index.png",
             )
             self._navigator.add(entry)
             self._show_entry(entry, update_stats=False)
@@ -570,6 +571,7 @@ class MainWindow(QMainWindow):
             after_image=entry.after_image,
             overlay=entry.overlay,
             new_flood_mask=entry.new_flood_mask,
+            spectral_index=entry.spectral_index,
         )
         if update_stats:
             self._statistics.show_pair_details(entry.record)
@@ -654,7 +656,7 @@ class MainWindow(QMainWindow):
             "Zoom: fit" if fit_mode else f"Zoom: {scale * 100.0:.0f} %"
         )
 
-    def keyPressEvent(self, event: QKeyEvent) -> None:  # noqa: N802 (Qt API)
+    def keyPressEvent(self, event: QKeyEvent) -> None:
         """Navigate pairs with the plain arrow keys.
 
         Reaches this handler only when no child consumed the key: line
@@ -685,7 +687,7 @@ class MainWindow(QMainWindow):
         save_settings(self._settings)
         self.statusBar().showMessage(f"{caption} folder set: {path}", 4000)
 
-    def closeEvent(self, event) -> None:  # noqa: N802 (Qt API)
+    def closeEvent(self, event) -> None:
         """Persist settings and stop a running worker on window close.
 
         Args:

@@ -107,6 +107,12 @@ class WaterDetectionResult:
         valid_mask: Optional boolean mask identifying pixels that are valid
             for statistical evaluation. The mask must have the same spatial
             dimensions as ``mask``. ``None`` means all pixels are valid.
+        index_values: Optional raw spectral index raster (NDWI or MNDWI,
+            typically in ``[-1, 1]`` with NaN at invalid pixels) that the
+            binary ``mask`` was thresholded from. Populated only by
+            :class:`~src.spectral_detector.SpectralWaterDetector`; ``None``
+            for HSV-based detection, which has no equivalent continuous
+            signal to visualize.
     """
 
     image_rgb: RGBImageArray
@@ -114,6 +120,7 @@ class WaterDetectionResult:
     mask: MaskArray
     water_coverage_percent: float
     valid_mask: np.ndarray | None = None
+    index_values: np.ndarray | None = None
 
 
 class WaterSegmentationStrategy(Protocol):

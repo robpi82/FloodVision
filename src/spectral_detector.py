@@ -134,4 +134,5 @@ class SpectralWaterDetector:
             mask=mask,
             water_coverage_percent=coverage,
             valid_mask=valid_mask,
+            index_values=index,
         )

@@ -157,7 +157,7 @@ class ZoomableImageView(QGraphicsView):
         """Whether the view currently follows fit-to-window."""
         return self._fit_mode
 
-    def copy_view_state(self, source: "ZoomableImageView") -> None:
+    def copy_view_state(self, source: ZoomableImageView) -> None:
         """Mirror another view's transform, mode and scroll position.
 
         Encapsulates the linked-view synchronisation so the owning tab
@@ -175,7 +175,7 @@ class ZoomableImageView(QGraphicsView):
     # ------------------------------------------------------------------
     # Qt events (user interaction -- emits view_transformed)
     # ------------------------------------------------------------------
-    def resizeEvent(self, event: QResizeEvent) -> None:  # noqa: N802 (Qt API)
+    def resizeEvent(self, event: QResizeEvent) -> None:
         """Re-fit on resize while in fit mode; re-check pannability.
 
         Args:
@@ -187,7 +187,7 @@ class ZoomableImageView(QGraphicsView):
         else:
             self._update_pan_mode()
 
-    def wheelEvent(self, event: QWheelEvent) -> None:  # noqa: N802 (Qt API)
+    def wheelEvent(self, event: QWheelEvent) -> None:
         """Device-aware wheel handling: gestures pan, wheels zoom.
 
         Trackpads and the Apple Magic Mouse report two-finger swipes as
@@ -224,7 +224,7 @@ class ZoomableImageView(QGraphicsView):
             self.view_transformed.emit()
         event.accept()
 
-    def event(self, event: QEvent) -> bool:  # noqa: N802 (Qt API)
+    def event(self, event: QEvent) -> bool:
         """Handle macOS native pinch-to-zoom gestures.
 
         Qt delivers trackpad pinches as ``ZoomNativeGesture`` events with
@@ -247,7 +247,7 @@ class ZoomableImageView(QGraphicsView):
             return True
         return super().event(event)
 
-    def keyPressEvent(self, event: QKeyEvent) -> None:  # noqa: N802 (Qt API)
+    def keyPressEvent(self, event: QKeyEvent) -> None:
         """Space arms panning; arrow keys are left to the main window.
 
         Left/Right are repurposed for pair navigation, so they are
@@ -267,7 +267,7 @@ class ZoomableImageView(QGraphicsView):
             return
         super().keyPressEvent(event)
 
-    def keyReleaseEvent(self, event: QKeyEvent) -> None:  # noqa: N802 (Qt API)
+    def keyReleaseEvent(self, event: QKeyEvent) -> None:
         """Releasing Space disarms the pan modifier.
 
         Args:
@@ -280,7 +280,7 @@ class ZoomableImageView(QGraphicsView):
             return
         super().keyReleaseEvent(event)
 
-    def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:  # noqa: N802
+    def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
         """Double click resets the image to fit-to-window.
 
         Args:
@@ -375,6 +375,7 @@ class ImageView(QTabWidget):
         ("after", "After"),
         ("overlay", "Overlay"),
         ("new_flood", "New Flood Mask"),
+        ("spectral_index", "Spectral Index"),
     )
 
     def __init__(self, parent: QWidget | None = None) -> None:
@@ -398,14 +399,21 @@ class ImageView(QTabWidget):
         after_image: Path,
         overlay: Path,
         new_flood_mask: Path,
+        spectral_index: Path | None = None,
     ) -> None:
-        """Display all four images of one processed pair.
+        """Display all preview products of one processed pair.
 
         Args:
             before_image: Original pre-event image.
             after_image: Original post-event image.
             overlay: Generated overlay product.
             new_flood_mask: Generated red-on-black change product.
+            spectral_index: Generated false-colour NDWI/MNDWI raster for the
+                *after* image. Only produced for spectral-mode runs; a
+                ``None`` or non-existent path falls back to the tab's
+                placeholder rather than raising, exactly like any other
+                missing preview file (see
+                :meth:`ZoomableImageView.show_image`).
         """
         self._syncing = True
         try:
@@ -413,6 +421,10 @@ class ImageView(QTabWidget):
             self._views["after"].show_image(after_image)
             self._views["overlay"].show_image(overlay)
             self._views["new_flood"].show_image(new_flood_mask)
+            if spectral_index is not None:
+                self._views["spectral_index"].show_image(spectral_index)
+            else:
+                self._views["spectral_index"].clear_image()
         finally:
             self._syncing = False
         self._emit_zoom_changed()
