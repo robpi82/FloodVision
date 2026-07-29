@@ -100,6 +100,78 @@ def export_flood_mask_geotiff(
     return output_path
 
 
+def export_spectral_index_geotiff(
+    index_values: np.ndarray,
+    geo_metadata: GeoTiffMetadata,
+    output_path: Path,
+) -> Path:
+    """Write a spectral index raster (NDWI or MNDWI) as a georeferenced GeoTIFF.
+
+    Unlike :func:`export_flood_mask_geotiff`, this writes the raw
+    continuous index values -- not a binary classification -- as a
+    single-band float32 raster, so it opens in GIS software with its
+    actual [-1, 1]-ish values intact for further analysis (custom
+    thresholds, overlays with other layers, etc.), rather than only the
+    already-thresholded PNG preview.
+
+    NoData semantics differ from the flood mask on purpose: a NaN entry
+    here genuinely means "no index value could be computed for this
+    pixel" (e.g. it was outside the source raster's valid-data mask),
+    not a meaningful third classification -- so NaN is written as this
+    raster's NoData value, unlike the flood mask's deliberate choice not
+    to define one.
+
+    Args:
+        index_values: NDWI/MNDWI raster, ``(height, width)`` float array,
+            typically in ``[-1, 1]`` with NaN at invalid pixels -- the
+            same array ``colorize_spectral_index`` renders as PNG.
+        geo_metadata: Metadata of the source GeoTIFF, providing the CRS,
+            affine transform and raster dimensions used to georeference
+            the output.
+        output_path: Target ``.tif`` path; parent directories are
+            created as needed.
+
+    Returns:
+        The path the GeoTIFF was written to (``output_path``).
+
+    Raises:
+        ValueError: If ``index_values`` is not a 2-D floating-point
+            array, or its shape does not match ``geo_metadata``'s
+            dimensions -- a programmer-contract violation, not a
+            runtime failure.
+        GeoTiffExportError: If Rasterio or the filesystem cannot write
+            the file (disk full, permission denied, invalid raster
+            parameters).
+    """
+    _validate_index_matches_metadata(index_values, geo_metadata)
+    try:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with rasterio.open(
+            output_path,
+            "w",
+            driver=_DRIVER,
+            width=geo_metadata.width,
+            height=geo_metadata.height,
+            count=1,
+            dtype="float32",
+            crs=geo_metadata.crs,
+            transform=geo_metadata.transform,
+            nodata=float("nan"),
+        ) as dataset:
+            dataset.write(index_values.astype(np.float32), 1)
+    except (RasterioError, OSError) as error:
+        raise GeoTiffExportError(output_path, str(error)) from error
+
+    logger.info(
+        "Georeferenced spectral index saved: %s (%d x %d px, CRS %s)",
+        output_path,
+        geo_metadata.width,
+        geo_metadata.height,
+        geo_metadata.crs_display,
+    )
+    return output_path
+
+
 def _validate_mask_matches_metadata(
     mask: MaskArray, geo_metadata: GeoTiffMetadata
 ) -> None:
@@ -128,4 +200,33 @@ def _validate_mask_matches_metadata(
         raise ValueError(
             f"mask shape {mask.shape} does not match geo_metadata "
             f"dimensions {expected_shape} (height, width)."
+        )
+
+
+def _validate_index_matches_metadata(
+    index_values: np.ndarray, geo_metadata: GeoTiffMetadata
+) -> None:
+    """Fail fast on shape/dtype contract violations.
+
+    Same rationale as :func:`_validate_mask_matches_metadata`: a wrong
+    shape or dtype here is a programmer-contract violation, not a
+    runtime failure, so it raises plain ``ValueError``.
+
+    Args:
+        index_values: Candidate spectral index raster.
+        geo_metadata: Metadata the raster is meant to be exported against.
+
+    Raises:
+        ValueError: If the array's dtype or shape is wrong.
+    """
+    if index_values.ndim != 2 or not np.issubdtype(index_values.dtype, np.floating):
+        raise ValueError(
+            "index_values must be 2-D floating-point, got "
+            f"ndim={index_values.ndim}, dtype={index_values.dtype}."
+        )
+    expected_shape = (geo_metadata.height, geo_metadata.width)
+    if index_values.shape != expected_shape:
+        raise ValueError(
+            f"index_values shape {index_values.shape} does not match "
+            f"geo_metadata dimensions {expected_shape} (height, width)."
         )

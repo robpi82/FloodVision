@@ -45,10 +45,15 @@ All notable changes to this project will be documented in this file.
 - Automated tests confirming `index_values` is populated for NDWI/MNDWI and left `None` for HSV (`tests/test_spectral_detector.py`)
 - Automated integration tests confirming spectral-index PNGs are produced only for spectral-mode batch runs, never for HSV (`tests/test_spectral_batch_integration.py`)
 - Automated GUI tests for the fifth preview tab, including graceful fallback when no spectral-index file exists (`tests/test_image_view.py`, new)
+- `export_spectral_index_geotiff()` in `src/geotiff_export.py`: georeferenced single-band float32 GeoTIFF export of the raw NDWI/MNDWI raster, carrying the source CRS and affine transform
+- `before_index.tif` / `after_index.tif` batch products for spectral-mode runs on GeoTIFF pairs, ready to open directly in QGIS or ArcGIS Pro
+- NaN written as a real NoData value on the exported index GeoTIFF, unlike the flood-mask export's deliberate choice not to define one -- a missing index value is a genuinely different case from a valid two-class flood mask
+- Automated tests for the georeferenced index export, mirroring the existing flood-mask export tests (`tests/test_geotiff_export.py`)
+- Automated integration tests confirming index GeoTIFFs are produced only for spectral-mode runs on GeoTIFF pairs, never for HSV or for plain image pairs (`tests/test_spectral_batch_integration.py`)
 
 ### Improved
 
-- Expanded the complete regression test suite to 255 passing tests
+- Expanded the complete regression test suite to 268 passing tests
 
 ---
 

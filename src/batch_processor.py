@@ -628,7 +628,8 @@ class BatchProcessor:
         """Write all products of one pair into its own output subdirectory.
 
         Layout (requirement of v0.4, ``new_flood_mask.tif`` added in v0.8,
-        ``before_index.png``/``after_index.png`` added in v0.10)::
+        ``before_index.png``/``after_index.png`` added in v0.10,
+        ``before_index.tif``/``after_index.tif`` added in v0.10)::
 
             data/output/<pair-stem>/
                 before_mask.png     binary pre-event water mask
@@ -639,6 +640,8 @@ class BatchProcessor:
                 after_index.png     false-colour NDWI/MNDWI raster (spectral only)
                 comparison.png      review figure (four or six panels)
                 new_flood_mask.tif  georeferenced flood mask (GeoTIFF pairs only)
+                before_index.tif    georeferenced NDWI/MNDWI raster (GeoTIFF + spectral only)
+                after_index.tif     georeferenced NDWI/MNDWI raster (GeoTIFF + spectral only)
 
         Figures are saved with ``show=False``: opening dozens of blocking
         matplotlib windows would make batch mode unusable.
@@ -704,3 +707,10 @@ class BatchProcessor:
             geotiff_export.export_flood_mask_geotiff(
                 comparison.new_water_mask, geo_metadata, out_dir / "new_flood_mask.tif"
             )
+            if before.index_values is not None and after.index_values is not None:
+                geotiff_export.export_spectral_index_geotiff(
+                    before.index_values, geo_metadata, out_dir / "before_index.tif"
+                )
+                geotiff_export.export_spectral_index_geotiff(
+                    after.index_values, geo_metadata, out_dir / "after_index.tif"
+                )

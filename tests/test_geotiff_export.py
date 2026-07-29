@@ -18,7 +18,7 @@ from rasterio.crs import CRS
 from rasterio.transform import from_origin
 
 from src.exceptions import GeoTiffExportError
-from src.geotiff_export import export_flood_mask_geotiff
+from src.geotiff_export import export_flood_mask_geotiff, export_spectral_index_geotiff
 from src.geotiff_loader import GeoTiffMetadata
 
 WIDTH = 40
@@ -86,6 +86,23 @@ def make_flood_mask(width: int = WIDTH, height: int = HEIGHT) -> np.ndarray:
     mask = np.zeros((height, width), dtype=np.uint8)
     mask[5:15, 8:20] = 255  # a known, exactly-reproducible flooded block
     return mask
+
+
+def make_spectral_index(width: int = WIDTH, height: int = HEIGHT) -> np.ndarray:
+    """Build a deterministic NDWI/MNDWI-like raster with one invalid pixel.
+
+    Args:
+        width: Raster width in pixels.
+        height: Raster height in pixels.
+
+    Returns:
+        A ``(height, width)`` float32 array with values in roughly
+        ``[-1, 1]`` and a single ``NaN`` at a known, fixed location.
+    """
+    index = np.full((height, width), -0.2, dtype=np.float32)
+    index[5:15, 8:20] = 0.6  # a known "water-like" block, mirrors the flood block
+    index[0, 0] = np.nan  # a known invalid pixel
+    return index
 
 
 # ---------------------------------------------------------------------------
@@ -258,4 +275,136 @@ class TestErrorHandling:
 
         with pytest.raises(GeoTiffExportError) as excinfo:
             export_flood_mask_geotiff(make_flood_mask(), make_metadata(), output_path)
+        assert excinfo.value.path == output_path
+
+
+# ---------------------------------------------------------------------------
+# Spectral index export: continuous float raster, NaN as NoData
+# ---------------------------------------------------------------------------
+class TestSpectralIndexExport:
+    """A NDWI/MNDWI raster exports to a real, single-band float32 GeoTIFF.
+
+    Deliberately mirrors :class:`TestSuccessfulExport` and
+    :class:`TestSpatialMetadataPreservation` in structure -- same claims,
+    same georeferencing guarantees -- but for the continuous index
+    export rather than the binary flood mask, plus the NoData handling
+    that is genuinely different between the two (see the module
+    docstring of :func:`export_spectral_index_geotiff`).
+    """
+
+    def test_export_creates_the_output_file(self, tmp_path: Path) -> None:
+        output_path = tmp_path / "after_index.tif"
+        result_path = export_spectral_index_geotiff(
+            make_spectral_index(), make_metadata(), output_path
+        )
+        assert result_path == output_path
+        assert output_path.is_file()
+
+    def test_export_creates_parent_directories(self, tmp_path: Path) -> None:
+        output_path = tmp_path / "flood" / "nested" / "after_index.tif"
+        export_spectral_index_geotiff(
+            make_spectral_index(), make_metadata(), output_path
+        )
+        assert output_path.is_file()
+
+    def test_output_is_single_band(self, tmp_path: Path) -> None:
+        output_path = tmp_path / "after_index.tif"
+        export_spectral_index_geotiff(
+            make_spectral_index(), make_metadata(), output_path
+        )
+        with rasterio.open(output_path) as dataset:
+            assert dataset.count == 1
+
+    def test_output_dtype_is_float32(self, tmp_path: Path) -> None:
+        output_path = tmp_path / "after_index.tif"
+        export_spectral_index_geotiff(
+            make_spectral_index(), make_metadata(), output_path
+        )
+        with rasterio.open(output_path) as dataset:
+            assert dataset.dtypes[0] == "float32"
+
+    def test_output_values_match_the_source_raster(self, tmp_path: Path) -> None:
+        """Written pixel values equal the input, NaN pixel included."""
+        index = make_spectral_index()
+        output_path = tmp_path / "after_index.tif"
+        export_spectral_index_geotiff(index, make_metadata(), output_path)
+        with rasterio.open(output_path) as dataset:
+            written = dataset.read(1)
+        np.testing.assert_allclose(
+            written, index, rtol=1e-5, equal_nan=True
+        )
+        assert written[10, 15] == pytest.approx(0.6)  # inside the water-like block
+        assert written[1, 1] == pytest.approx(-0.2)  # outside it
+        assert np.isnan(written[0, 0])  # the known invalid pixel
+
+    def test_nan_is_written_as_nodata(self, tmp_path: Path) -> None:
+        """Unlike the flood mask, NaN pixels here get a real NoData value.
+
+        This is the deliberate semantic difference documented in
+        :func:`export_spectral_index_geotiff`: NaN means "no index value
+        here", a genuinely missing value, not a valid third class.
+        """
+        output_path = tmp_path / "after_index.tif"
+        export_spectral_index_geotiff(
+            make_spectral_index(), make_metadata(), output_path
+        )
+        with rasterio.open(output_path) as dataset:
+            assert dataset.nodata is not None
+            assert np.isnan(dataset.nodata)
+
+    def test_crs_and_transform_are_preserved(self, tmp_path: Path) -> None:
+        output_path = tmp_path / "after_index.tif"
+        export_spectral_index_geotiff(
+            make_spectral_index(),
+            make_metadata(crs=UTM32, transform=TRANSFORM),
+            output_path,
+        )
+        with rasterio.open(output_path) as dataset:
+            assert dataset.crs == UTM32
+            assert dataset.transform.almost_equals(TRANSFORM, precision=1e-9)
+
+    def test_dimensions_are_preserved(self, tmp_path: Path) -> None:
+        width, height = 77, 55
+        output_path = tmp_path / "after_index.tif"
+        export_spectral_index_geotiff(
+            make_spectral_index(width, height),
+            make_metadata(width=width, height=height),
+            output_path,
+        )
+        with rasterio.open(output_path) as dataset:
+            assert (dataset.width, dataset.height) == (width, height)
+
+    def test_wrong_dtype_raises_value_error(self, tmp_path: Path) -> None:
+        """An integer raster is a programmer-contract violation here."""
+        bad_index = make_spectral_index().astype(np.int32)
+        with pytest.raises(ValueError, match="floating-point"):
+            export_spectral_index_geotiff(
+                bad_index, make_metadata(), tmp_path / "out.tif"
+            )
+
+    def test_wrong_ndim_raises_value_error(self, tmp_path: Path) -> None:
+        bad_index = np.zeros((HEIGHT, WIDTH, 1), dtype=np.float32)
+        with pytest.raises(ValueError, match="2-D"):
+            export_spectral_index_geotiff(
+                bad_index, make_metadata(), tmp_path / "out.tif"
+            )
+
+    def test_mismatched_shape_raises_value_error(self, tmp_path: Path) -> None:
+        mismatched = make_spectral_index(width=WIDTH + 5, height=HEIGHT)
+        with pytest.raises(ValueError, match="does not match"):
+            export_spectral_index_geotiff(
+                mismatched, make_metadata(), tmp_path / "out.tif"
+            )
+
+    def test_unwritable_output_path_raises_geotiff_export_error(
+        self, tmp_path: Path
+    ) -> None:
+        blocking_file = tmp_path / "blocked"
+        blocking_file.write_text("not a directory")
+        output_path = blocking_file / "after_index.tif"
+
+        with pytest.raises(GeoTiffExportError) as excinfo:
+            export_spectral_index_geotiff(
+                make_spectral_index(), make_metadata(), output_path
+            )
         assert excinfo.value.path == output_path

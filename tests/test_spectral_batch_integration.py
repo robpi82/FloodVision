@@ -177,6 +177,8 @@ def test_sentinel2_before_after_pair_uses_spectral_detection(
     assert (product_dir / "new_flood_mask.tif").is_file()
     assert (product_dir / "before_index.png").is_file()
     assert (product_dir / "after_index.png").is_file()
+    assert (product_dir / "before_index.tif").is_file()
+    assert (product_dir / "after_index.tif").is_file()
 
     with rasterio.open(
         product_dir / "new_flood_mask.tif"
@@ -187,6 +189,18 @@ def test_sentinel2_before_after_pair_uses_spectral_detection(
         assert dataset.width == WIDTH
         assert dataset.height == HEIGHT
         assert np.count_nonzero(exported_mask == 255) == expected_flood_pixels
+
+    with rasterio.open(product_dir / "after_index.tif") as dataset:
+        exported_index = dataset.read(1)
+
+        assert dataset.crs.to_string() == UTM32
+        assert dataset.width == WIDTH
+        assert dataset.height == HEIGHT
+        assert dataset.dtypes[0] == "float32"
+        assert dataset.nodata is not None and np.isnan(dataset.nodata)
+        # The simulated flood block must read as a high, water-like NDWI
+        # value in the exported raster, not just in the PNG preview.
+        assert float(np.nanmean(exported_index[10:38, 20:50])) > 0.1
 
 
 def test_hsv_batch_produces_no_spectral_index_products(tmp_path: Path) -> None:
@@ -222,3 +236,44 @@ def test_hsv_batch_produces_no_spectral_index_products(tmp_path: Path) -> None:
     assert (product_dir / "overlay.png").is_file()
     assert not (product_dir / "before_index.png").exists()
     assert not (product_dir / "after_index.png").exists()
+
+
+def test_hsv_geotiff_batch_exports_flood_mask_but_no_index_geotiff(
+    tmp_path: Path,
+) -> None:
+    """HSV runs on a compatible GeoTIFF pair still export the flood mask
+    GeoTIFF, but never *_index.tif -- there is no index to georeference.
+
+    This is the ``.tif`` counterpart to
+    ``test_hsv_batch_produces_no_spectral_index_products``: that test
+    uses plain PNGs, which never reach the georeferenced-export branch
+    at all, so it cannot exercise the ``index_values is not None`` guard
+    inside the ``geo_metadata is not None`` block. This one uses a
+    GeoTIFF pair specifically to reach that branch and confirm the guard
+    holds.
+    """
+    before_dir = tmp_path / "before"
+    after_dir = tmp_path / "after"
+    output_dir = tmp_path / "output"
+    before_dir.mkdir()
+    after_dir.mkdir()
+
+    write_sentinel2_geotiff(before_dir / "sentinel2_flood.tif", flooded=False)
+    write_sentinel2_geotiff(after_dir / "sentinel2_flood.tif", flooded=True)
+
+    processor = BatchProcessor(
+        loader=ImageLoader(),
+        detector=HSVWaterDetector(),
+        before_dir=before_dir,
+        after_dir=after_dir,
+        output_dir=output_dir,
+    )
+
+    result = processor.run()
+
+    assert result.records[0].status is ProcessingStatus.SUCCESS
+
+    product_dir = output_dir / "sentinel2_flood"
+    assert (product_dir / "new_flood_mask.tif").is_file()
+    assert not (product_dir / "before_index.tif").exists()
+    assert not (product_dir / "after_index.tif").exists()

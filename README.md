@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-pink)
-![Tests](https://img.shields.io/badge/tests-255%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-268%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -46,6 +46,7 @@ The current stable release v0.9.2 provides multispectral GeoTIFF processing, Sen
 * Spectral index selection between NDWI and MNDWI
 * Configurable spectral-index threshold
 * False-colour NDWI/MNDWI visualization
+* Georeferenced NDWI/MNDWI GeoTIFF export
 * Previous / Next image navigation
 * Zoom In
 * Zoom Out
@@ -77,6 +78,8 @@ The spectral-index control is disabled while HSV mode is active, and its selecti
 A **Threshold** control alongside the spectral index sets the minimum index value classified as water, from -1.00 to 1.00 (default 0.10). A lower threshold classifies more area as water; a higher threshold classifies less. Like the spectral-index control, it is only enabled while spectral mode is active and its value is persisted across restarts.
 
 For spectral-mode runs, a fifth **Spectral Index** preview tab shows the raw NDWI/MNDWI raster as a false-colour image (blue = water-like, red/brown = land-like, grey = no data) -- a direct view of what the threshold above is actually filtering. The corresponding `before_index.png`/`after_index.png` files are written alongside the other batch outputs; HSV-mode runs produce neither the files nor a populated preview tab, since there is no continuous index to show.
+
+For spectral-mode runs on GeoTIFF pairs specifically, the raw NDWI/MNDWI values are additionally exported as georeferenced `before_index.tif`/`after_index.tif` files -- single-band float32 rasters carrying the source CRS and affine transform, ready to open directly in QGIS or ArcGIS Pro for custom thresholding or overlay with other layers. Unlike the flood mask export, invalid pixels are written with a real NoData value (NaN) rather than a valid third class, since a missing index value is genuinely different from "not water".
 
 ### GeoTIFF & GIS Support
 
@@ -259,7 +262,7 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 * Valid-mask shape validation tests
 * Invalid-pixel exclusion tests
 * Fully masked raster handling tests
-* Complete regression test suite with 255 passing tests
+* Complete regression test suite with 268 passing tests
 * End-to-end Sentinel-2 Before/After batch integration test
 * Productive spectral detector routing test
 * Georeferenced spectral flood mask export validation
@@ -341,7 +344,7 @@ python -m pytest -v
 Latest verified stable baseline:
 
 ```text
-255 passed, 6 warnings
+268 passed, 9 warnings
 ```
 
 ---
@@ -502,10 +505,10 @@ Current development focus:
 * Spectral flood visualizations - done
 * NDWI and MNDWI result layers - done
 * Multi-index flood classification
-* GIS-ready spectral analysis outputs
+* GIS-ready spectral analysis outputs - done
 * Multi-temporal flood monitoring
 
-The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis, including a choice between the NDWI and MNDWI spectral indices, a configurable classification threshold, and a false-colour visualization of the raw index raster, in the settings dialog and preview tabs; the remaining v0.10.0 work builds the operational Sentinel-2 workflow (real imagery import, GIS-ready outputs) on top of this configurable detection strategy.
+The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis, including a choice between the NDWI and MNDWI spectral indices, a configurable classification threshold, a false-colour visualization of the raw index raster, and a georeferenced GeoTIFF export of that raster for use in GIS software, in the settings dialog, preview tabs and batch outputs; the remaining v0.10.0 work is the operational Sentinel-2 import workflow (real Level-2A products, band resolution, resampling) on top of this configurable detection strategy.
 
 ---
 
@@ -586,10 +589,10 @@ Planned development:
 * Configurable spectral-index threshold - done
 * Spectral flood visualizations - done
 * NDWI and MNDWI result layers - done
+* GIS-ready spectral analysis outputs - done
 * Processing of real Sentinel-2 Level-2A products
 * Sentinel-2 imagery import workflow
 * Multi-index flood classification
-* GIS-ready spectral analysis outputs
 * Multi-temporal flood monitoring
 
 ### Version 0.11.0
