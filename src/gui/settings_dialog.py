@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
+    QDoubleSpinBox,
     QFileDialog,
     QFormLayout,
     QGroupBox,
@@ -31,6 +32,8 @@ from PySide6.QtWidgets import (
 from src.gui.app_settings import (
     DETECTION_MODE_HSV,
     DETECTION_MODE_SPECTRAL,
+    SPECTRAL_THRESHOLD_MAX,
+    SPECTRAL_THRESHOLD_MIN,
     AppSettings,
 )
 from src.spectral_indices import SPECTRAL_INDEX_MNDWI, SPECTRAL_INDEX_NDWI
@@ -105,9 +108,18 @@ class SettingsDialog(QDialog):
             self._update_detection_controls
         )
 
+        self._spectral_threshold_spin = QDoubleSpinBox()
+        self._spectral_threshold_spin.setRange(
+            SPECTRAL_THRESHOLD_MIN, SPECTRAL_THRESHOLD_MAX
+        )
+        self._spectral_threshold_spin.setSingleStep(0.05)
+        self._spectral_threshold_spin.setDecimals(2)
+        self._spectral_threshold_spin.setValue(settings.spectral_threshold)
+
         detection_form = QFormLayout()
         detection_form.addRow("Detection method:", self._detection_mode_combo)
         detection_form.addRow("Spectral index:", self._spectral_index_combo)
+        detection_form.addRow("Threshold:", self._spectral_threshold_spin)
         detection_form.addRow(self._detection_hint)
         detection_box = QGroupBox("Water detection method")
         detection_box.setLayout(detection_form)
@@ -158,6 +170,7 @@ class SettingsDialog(QDialog):
             self._initial,
             detection_mode=self._detection_mode_combo.currentData(),
             spectral_index=self._spectral_index_combo.currentData(),
+            spectral_threshold=self._spectral_threshold_spin.value(),
             hsv_lower=_values(self._lower),
             hsv_upper=_values(self._upper),
             output_dir=self._output_edit.text().strip(),
@@ -165,16 +178,18 @@ class SettingsDialog(QDialog):
         )
 
     def _update_detection_controls(self) -> None:
-        """Enable/disable the HSV box and spectral-index combo; update the hint.
+        """Enable/disable the HSV box and spectral controls; update the hint.
 
         The HSV thresholds are meaningless in spectral mode and the
-        spectral-index choice is meaningless in HSV mode, so each is
-        disabled rather than hidden -- the user can still see the current
-        value, just not edit it, and nothing is lost when switching back.
+        spectral-index/threshold controls are meaningless in HSV mode, so
+        each is disabled rather than hidden -- the user can still see the
+        current value, just not edit it, and nothing is lost when switching
+        back.
         """
         is_hsv = self._detection_mode_combo.currentData() == DETECTION_MODE_HSV
         self._hsv_box.setEnabled(is_hsv)
         self._spectral_index_combo.setEnabled(not is_hsv)
+        self._spectral_threshold_spin.setEnabled(not is_hsv)
         if is_hsv:
             self._detection_hint.setText(_HSV_HINT)
         else:

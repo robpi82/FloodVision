@@ -28,10 +28,17 @@ All notable changes to this project will be documented in this file.
 - Automated tests for spectral-index persistence and validation (`tests/test_app_settings.py`)
 - Automated tests for spectral-index pass-through in the GUI worker (`tests/test_worker.py`)
 - Automated GUI tests for the settings dialog's spectral-index selection (`tests/test_settings_dialog.py`)
+- Configurable spectral-index threshold in the settings dialog, replacing the previously fixed 0.1 value
+- `DEFAULT_SPECTRAL_THRESHOLD` constant in `src/spectral_detector.py`, shared between the detector's own default and the GUI settings default
+- `SPECTRAL_THRESHOLD_MIN` / `SPECTRAL_THRESHOLD_MAX` range constants in `src/gui/app_settings.py`
+- Persistent, range-validated `spectral_threshold` setting, with a safe fallback to the default for missing, out-of-range, or wrong-type values
+- Automated tests for spectral-threshold persistence and range validation (`tests/test_app_settings.py`)
+- Automated tests for spectral-threshold pass-through in the GUI worker (`tests/test_worker.py`)
+- Automated GUI tests for the settings dialog's threshold control (`tests/test_settings_dialog.py`)
 
 ### Improved
 
-- Expanded the complete regression test suite to 224 passing tests
+- Expanded the complete regression test suite to 240 passing tests
 
 ---
 

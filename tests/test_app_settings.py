@@ -19,11 +19,14 @@ from src import config
 from src.gui.app_settings import (
     DETECTION_MODE_HSV,
     DETECTION_MODE_SPECTRAL,
+    SPECTRAL_THRESHOLD_MAX,
+    SPECTRAL_THRESHOLD_MIN,
     VALID_DETECTION_MODES,
     AppSettings,
     load_settings,
     save_settings,
 )
+from src.spectral_detector import DEFAULT_SPECTRAL_THRESHOLD
 from src.spectral_indices import SPECTRAL_INDEX_MNDWI, SPECTRAL_INDEX_NDWI
 
 
@@ -225,6 +228,105 @@ class TestSpectralIndexValidation:
         reloaded = load_settings(settings_path)
 
         assert reloaded.spectral_index == SPECTRAL_INDEX_MNDWI
+
+
+# ---------------------------------------------------------------------------
+# Spectral-threshold validation (invalid/missing/wrong-type/out-of-range values)
+# ---------------------------------------------------------------------------
+class TestSpectralThresholdValidation:
+    """A stored spectral threshold is kept only if it is a real number in range.
+
+    Unlike ``detection_mode``/``spectral_index``, a threshold has no small
+    fixed set of valid values -- validity here means "numeric and within
+    the range NDWI/MNDWI can produce", not membership in an enum.
+    """
+
+    def test_spectral_threshold_defaults_to_backend_default(self) -> None:
+        """The GUI default matches the backend detector's own default."""
+        settings = AppSettings()
+
+        assert settings.spectral_threshold == DEFAULT_SPECTRAL_THRESHOLD
+
+    def test_spectral_threshold_loads_from_json(self, tmp_path: Path) -> None:
+        """A persisted threshold is restored when settings are loaded."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, spectral_threshold=0.25)
+
+        settings = load_settings(settings_path)
+
+        assert settings.spectral_threshold == 0.25
+
+    def test_out_of_range_threshold_falls_back_to_default(self, tmp_path: Path) -> None:
+        """A value outside [-1.0, 1.0] falls back to the default."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, spectral_threshold=1.5)
+
+        settings = load_settings(settings_path)
+
+        assert settings.spectral_threshold == DEFAULT_SPECTRAL_THRESHOLD
+
+    def test_negative_out_of_range_threshold_falls_back_to_default(
+        self, tmp_path: Path
+    ) -> None:
+        """A value below -1.0 falls back to the default."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, spectral_threshold=-2.0)
+
+        settings = load_settings(settings_path)
+
+        assert settings.spectral_threshold == DEFAULT_SPECTRAL_THRESHOLD
+
+    def test_boundary_values_are_preserved(self, tmp_path: Path) -> None:
+        """The inclusive range boundaries themselves are valid values."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, spectral_threshold=SPECTRAL_THRESHOLD_MIN)
+
+        settings = load_settings(settings_path)
+
+        assert settings.spectral_threshold == SPECTRAL_THRESHOLD_MIN
+
+        write_settings_json(settings_path, spectral_threshold=SPECTRAL_THRESHOLD_MAX)
+
+        settings = load_settings(settings_path)
+
+        assert settings.spectral_threshold == SPECTRAL_THRESHOLD_MAX
+
+    def test_missing_threshold_falls_back_to_default(self, tmp_path: Path) -> None:
+        """An older settings file without the field defaults correctly."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, dark_mode=False)  # no threshold key
+
+        settings = load_settings(settings_path)
+
+        assert settings.spectral_threshold == DEFAULT_SPECTRAL_THRESHOLD
+
+    def test_non_numeric_threshold_falls_back_to_default(self, tmp_path: Path) -> None:
+        """A wrong JSON type (e.g. a string) falls back to the default."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, spectral_threshold="not a number")
+
+        settings = load_settings(settings_path)
+
+        assert settings.spectral_threshold == DEFAULT_SPECTRAL_THRESHOLD
+
+    def test_boolean_threshold_falls_back_to_default(self, tmp_path: Path) -> None:
+        """A JSON boolean must not be accepted despite being int-like in Python."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, spectral_threshold=True)
+
+        settings = load_settings(settings_path)
+
+        assert settings.spectral_threshold == DEFAULT_SPECTRAL_THRESHOLD
+
+    def test_round_trip_preserves_custom_threshold(self, tmp_path: Path) -> None:
+        """Saving and reloading a custom threshold is stable."""
+        settings_path = tmp_path / "gui_settings.json"
+        original = AppSettings(spectral_threshold=0.3)
+
+        save_settings(original, settings_path)
+        reloaded = load_settings(settings_path)
+
+        assert reloaded.spectral_threshold == 0.3
 
 # ---------------------------------------------------------------------------
 # Cross-platform directory reconciliation (the actual fix)

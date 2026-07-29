@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import Any, Final
 
 from src import config
+from src.spectral_detector import DEFAULT_SPECTRAL_THRESHOLD
 from src.spectral_indices import SPECTRAL_INDEX_NDWI, VALID_SPECTRAL_INDICES
 
 logger = logging.getLogger(__name__)
@@ -42,6 +43,9 @@ VALID_DETECTION_MODES: Final[frozenset[str]] = frozenset(
     {DETECTION_MODE_HSV, DETECTION_MODE_SPECTRAL}
 )
 
+SPECTRAL_THRESHOLD_MIN: Final[float] = -1.0
+SPECTRAL_THRESHOLD_MAX: Final[float] = 1.0
+
 
 @dataclass(frozen=True)
 class AppSettings:
@@ -52,6 +56,7 @@ class AppSettings:
     hsv_upper: tuple[int, int, int] = config.WATER_HSV_UPPER
     detection_mode: str = DETECTION_MODE_HSV
     spectral_index: str = SPECTRAL_INDEX_NDWI
+    spectral_threshold: float = DEFAULT_SPECTRAL_THRESHOLD
     dark_mode: bool = True
 
 
@@ -99,6 +104,9 @@ def load_settings(path: Path = SETTINGS_PATH) -> AppSettings:
             ),
             spectral_index=_as_spectral_index(
                 raw.get("spectral_index"), defaults.spectral_index
+            ),
+            spectral_threshold=_as_spectral_threshold(
+                raw.get("spectral_threshold"), defaults.spectral_threshold
             ),
             dark_mode=bool(raw.get("dark_mode", defaults.dark_mode)),
         )
@@ -218,6 +226,34 @@ def _as_spectral_index(value: Any, fallback: str) -> str:
     """
     if isinstance(value, str) and value in VALID_SPECTRAL_INDICES:
         return value
+    return fallback
+
+
+def _as_spectral_threshold(value: Any, fallback: float) -> float:
+    """Coerce a JSON value into a valid spectral threshold, falling back when invalid.
+
+    Same rationale as :func:`_as_detection_mode` and :func:`_as_spectral_index`:
+    a persisted ``spectral_threshold`` is untrusted input. Unlike those two
+    enum-like fields, a threshold has no small fixed set of valid values, so
+    this checks the value is numeric and within the range NDWI/MNDWI can
+    actually produce (:data:`SPECTRAL_THRESHOLD_MIN` to
+    :data:`SPECTRAL_THRESHOLD_MAX`) rather than membership in a set.
+
+    Args:
+        value: Raw JSON value for ``spectral_threshold`` (``None`` if the
+            key was absent).
+        fallback: Value to use when ``value`` is not a valid threshold.
+
+    Returns:
+        ``float(value)`` if it is a real number within range, otherwise
+        ``fallback``.
+    """
+    if (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and SPECTRAL_THRESHOLD_MIN <= value <= SPECTRAL_THRESHOLD_MAX
+    ):
+        return float(value)
     return fallback
 
 

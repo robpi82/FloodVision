@@ -7,6 +7,8 @@ relationships such as NDWI or MNDWI to identify water surfaces.
 
 from __future__ import annotations
 
+from typing import Final
+
 import numpy as np
 
 from src import spectral_water_detection
@@ -30,13 +32,15 @@ _SECONDARY_BAND_BY_INDEX: dict[str, str] = {
     SPECTRAL_INDEX_MNDWI: "B11",
 }
 
+DEFAULT_SPECTRAL_THRESHOLD: Final[float] = 0.1
+
 
 class SpectralWaterDetector:
     """Detect water using Sentinel-2 spectral information."""
 
     def __init__(
         self,
-        ndwi_threshold: float = 0.1,
+        ndwi_threshold: float = DEFAULT_SPECTRAL_THRESHOLD,
         spectral_index: str = SPECTRAL_INDEX_NDWI,
     ) -> None:
         """Initialise the spectral detector.
@@ -44,8 +48,8 @@ class SpectralWaterDetector:
         Args:
             ndwi_threshold: Minimum index value classified as water. Applies
                 to whichever index is selected; the name is kept from the
-                original NDWI-only detector and will be revisited once the
-                threshold itself becomes independently configurable.
+                original NDWI-only detector for backward compatibility with
+                existing keyword-argument call sites.
             spectral_index: Which spectral index to use -- one of
                 :data:`~src.spectral_indices.SPECTRAL_INDEX_NDWI` or
                 :data:`~src.spectral_indices.SPECTRAL_INDEX_MNDWI`.

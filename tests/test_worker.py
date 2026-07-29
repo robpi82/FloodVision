@@ -59,3 +59,14 @@ def test_create_detector_passes_spectral_index_through() -> None:
     detector = _create_detector(settings)
 
     assert detector._spectral_index == SPECTRAL_INDEX_MNDWI
+
+
+def test_create_detector_passes_spectral_threshold_through() -> None:
+    settings = AppSettings(
+        detection_mode=DETECTION_MODE_SPECTRAL,
+        spectral_threshold=0.35,
+    )
+
+    detector = _create_detector(settings)
+
+    assert detector._ndwi_threshold == 0.35

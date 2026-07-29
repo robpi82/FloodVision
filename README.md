@@ -44,6 +44,7 @@ The current stable release v0.9.2 provides multispectral GeoTIFF processing, Sen
 * Folder browser integration
 * Detection-method selection between HSV and Sentinel-2 spectral analysis
 * Spectral index selection between NDWI and MNDWI
+* Configurable spectral-index threshold
 * Previous / Next image navigation
 * Zoom In
 * Zoom Out
@@ -71,6 +72,8 @@ While spectral mode is active, a second control selects the spectral index:
 * MNDWI (Green / SWIR, bands B03/B11) is more robust against turbid water and built-up areas.
 
 The spectral-index control is disabled while HSV mode is active, and its selection is likewise persisted across restarts.
+
+A **Threshold** control alongside the spectral index sets the minimum index value classified as water, from -1.00 to 1.00 (default 0.10). A lower threshold classifies more area as water; a higher threshold classifies less. Like the spectral-index control, it is only enabled while spectral mode is active and its value is persisted across restarts.
 
 ### GeoTIFF & GIS Support
 
@@ -489,6 +492,8 @@ Current development focus:
 * Productive selection between NDWI and MNDWI - done
 * GUI selection between NDWI and MNDWI, with automatic B03/B08 or B03/B11 band resolution - done
 * Persistent, validated spectral-index setting - done
+* Configurable spectral-index threshold, replacing the previous fixed 0.1 value - done
+* Persistent, range-validated spectral-threshold setting - done
 * Processing of real Sentinel-2 Level-2A products
 * Sentinel-2 imagery import workflow
 * Spectral flood visualizations
@@ -497,7 +502,7 @@ Current development focus:
 * GIS-ready spectral analysis outputs
 * Multi-temporal flood monitoring
 
-The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis, including a choice between the NDWI and MNDWI spectral indices, in the settings dialog; the remaining v0.10.0 work builds the operational Sentinel-2 workflow (real imagery import, a configurable index threshold, spectral visualizations) on top of this configurable detection strategy.
+The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis, including a choice between the NDWI and MNDWI spectral indices and a configurable classification threshold, in the settings dialog; the remaining v0.10.0 work builds the operational Sentinel-2 workflow (real imagery import, spectral visualizations, GIS-ready outputs) on top of this configurable detection strategy.
 
 ---
 
@@ -575,6 +580,7 @@ Planned development:
 
 * GUI selection between HSV and Sentinel-2 spectral detection - done
 * Productive selection between NDWI and MNDWI - done
+* Configurable spectral-index threshold - done
 * Processing of real Sentinel-2 Level-2A products
 * Sentinel-2 imagery import workflow
 * Spectral flood visualizations
