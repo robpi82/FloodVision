@@ -18,10 +18,20 @@ All notable changes to this project will be documented in this file.
 - Automated tests for detection-mode persistence and validation (`tests/test_app_settings.py`)
 - Automated tests for HSV/spectral detector creation, including the invalid-mode error path (`tests/test_worker.py`)
 - Automated GUI tests for the settings dialog's detection-method selection (`tests/test_settings_dialog.py`)
+- Configurable spectral index (NDWI or MNDWI) in `SpectralWaterDetector`, replacing the previous NDWI-only implementation
+- `SPECTRAL_INDEX_NDWI` / `SPECTRAL_INDEX_MNDWI` constants and a `VALID_SPECTRAL_INDICES` set in `src/spectral_indices.py`
+- Automatic Sentinel-2 band resolution per selected index: B03/B08 for NDWI, B03/B11 for MNDWI
+- GUI selection between NDWI and MNDWI, enabled only while spectral detection is active
+- Persistent, validated `spectral_index` setting, with a safe fallback to NDWI for missing, unknown, or wrong-type values
+- Index-specific hint text in the settings dialog describing the trade-off between NDWI and MNDWI
+- Automated tests for MNDWI-based detection and per-index band resolution (`tests/test_spectral_detector.py`)
+- Automated tests for spectral-index persistence and validation (`tests/test_app_settings.py`)
+- Automated tests for spectral-index pass-through in the GUI worker (`tests/test_worker.py`)
+- Automated GUI tests for the settings dialog's spectral-index selection (`tests/test_settings_dialog.py`)
 
 ### Improved
 
-- Expanded the complete regression test suite to 203 passing tests
+- Expanded the complete regression test suite to 224 passing tests
 
 ---
 

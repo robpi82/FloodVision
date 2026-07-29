@@ -33,15 +33,24 @@ from src.gui.app_settings import (
     DETECTION_MODE_SPECTRAL,
     AppSettings,
 )
+from src.spectral_indices import SPECTRAL_INDEX_MNDWI, SPECTRAL_INDEX_NDWI
 
 _HSV_MAXIMA: tuple[int, int, int] = (179, 255, 255)
 _HSV_CHANNELS: tuple[str, str, str] = ("H", "S", "V")
 
 _HSV_HINT: str = "Use HSV detection for PNG, JPEG and standard RGB imagery."
-_SPECTRAL_HINT: str = (
-    "Use spectral detection for compatible multispectral Sentinel-2 "
-    "GeoTIFF files containing the required Green and NIR bands."
-)
+_SPECTRAL_HINT_BY_INDEX: dict[str, str] = {
+    SPECTRAL_INDEX_NDWI: (
+        "Use spectral detection for compatible multispectral Sentinel-2 "
+        "GeoTIFF files. NDWI compares Green and Near-Infrared (B03/B08) "
+        "and is well suited to open water."
+    ),
+    SPECTRAL_INDEX_MNDWI: (
+        "Use spectral detection for compatible multispectral Sentinel-2 "
+        "GeoTIFF files. MNDWI compares Green and Short-Wave Infrared "
+        "(B03/B11) and is more robust against turbid water and built-up areas."
+    ),
+}
 
 
 class SettingsDialog(QDialog):
@@ -78,8 +87,27 @@ class SettingsDialog(QDialog):
         self._detection_hint = QLabel()
         self._detection_hint.setWordWrap(True)
 
+        self._spectral_index_combo = QComboBox()
+        self._spectral_index_combo.addItem(
+            "NDWI (Green / NIR)",
+            SPECTRAL_INDEX_NDWI,
+        )
+        self._spectral_index_combo.addItem(
+            "MNDWI (Green / SWIR)",
+            SPECTRAL_INDEX_MNDWI,
+        )
+        spectral_index_position = self._spectral_index_combo.findData(
+            settings.spectral_index
+        )
+        if spectral_index_position >= 0:
+            self._spectral_index_combo.setCurrentIndex(spectral_index_position)
+        self._spectral_index_combo.currentIndexChanged.connect(
+            self._update_detection_controls
+        )
+
         detection_form = QFormLayout()
         detection_form.addRow("Detection method:", self._detection_mode_combo)
+        detection_form.addRow("Spectral index:", self._spectral_index_combo)
         detection_form.addRow(self._detection_hint)
         detection_box = QGroupBox("Water detection method")
         detection_box.setLayout(detection_form)
@@ -129,6 +157,7 @@ class SettingsDialog(QDialog):
         return replace(
             self._initial,
             detection_mode=self._detection_mode_combo.currentData(),
+            spectral_index=self._spectral_index_combo.currentData(),
             hsv_lower=_values(self._lower),
             hsv_upper=_values(self._upper),
             output_dir=self._output_edit.text().strip(),
@@ -136,16 +165,21 @@ class SettingsDialog(QDialog):
         )
 
     def _update_detection_controls(self) -> None:
-        """Enable/disable the HSV box and update the hint for the selected mode.
+        """Enable/disable the HSV box and spectral-index combo; update the hint.
 
-        The HSV thresholds are meaningless in spectral mode, so the whole
-        group box is disabled rather than hidden -- the user can still see
-        their current HSV values, just not edit them, and nothing is lost
-        when switching back.
+        The HSV thresholds are meaningless in spectral mode and the
+        spectral-index choice is meaningless in HSV mode, so each is
+        disabled rather than hidden -- the user can still see the current
+        value, just not edit it, and nothing is lost when switching back.
         """
         is_hsv = self._detection_mode_combo.currentData() == DETECTION_MODE_HSV
         self._hsv_box.setEnabled(is_hsv)
-        self._detection_hint.setText(_HSV_HINT if is_hsv else _SPECTRAL_HINT)
+        self._spectral_index_combo.setEnabled(not is_hsv)
+        if is_hsv:
+            self._detection_hint.setText(_HSV_HINT)
+        else:
+            spectral_index = self._spectral_index_combo.currentData()
+            self._detection_hint.setText(_SPECTRAL_HINT_BY_INDEX[spectral_index])
 
     def _make_hsv_row(self, values: tuple[int, int, int]) -> list[QSpinBox]:
         """Create three spin boxes with correct OpenCV HSV ranges.

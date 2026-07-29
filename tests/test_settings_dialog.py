@@ -15,6 +15,7 @@ from src.gui.app_settings import (
     AppSettings,
 )
 from src.gui.settings_dialog import SettingsDialog
+from src.spectral_indices import SPECTRAL_INDEX_MNDWI, SPECTRAL_INDEX_NDWI
 
 
 def test_stored_hsv_mode_is_shown_and_hsv_box_enabled(qtbot) -> None:
@@ -123,3 +124,124 @@ def test_changing_detection_mode_preserves_other_settings(qtbot) -> None:
     assert result.hsv_upper == settings.hsv_upper
     assert result.dark_mode == settings.dark_mode
     assert result.detection_mode == DETECTION_MODE_SPECTRAL
+
+
+# ---------------------------------------------------------------------------
+# Spectral index selection (NDWI vs MNDWI)
+# ---------------------------------------------------------------------------
+def test_stored_spectral_index_is_shown(qtbot) -> None:
+    settings = AppSettings(
+        detection_mode=DETECTION_MODE_SPECTRAL,
+        spectral_index=SPECTRAL_INDEX_MNDWI,
+    )
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+
+    assert dialog._spectral_index_combo.currentData() == SPECTRAL_INDEX_MNDWI
+
+
+def test_spectral_index_combo_disabled_in_hsv_mode(qtbot) -> None:
+    settings = AppSettings(detection_mode=DETECTION_MODE_HSV)
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+
+    assert not dialog._spectral_index_combo.isEnabled()
+
+
+def test_spectral_index_combo_enabled_in_spectral_mode(qtbot) -> None:
+    settings = AppSettings(detection_mode=DETECTION_MODE_SPECTRAL)
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+
+    assert dialog._spectral_index_combo.isEnabled()
+
+
+def test_switching_to_spectral_enables_index_combo(qtbot) -> None:
+    settings = AppSettings(detection_mode=DETECTION_MODE_HSV)
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+
+    spectral_position = dialog._detection_mode_combo.findData(DETECTION_MODE_SPECTRAL)
+    dialog._detection_mode_combo.setCurrentIndex(spectral_position)
+
+    assert dialog._spectral_index_combo.isEnabled()
+
+
+def test_result_settings_reports_selected_spectral_index(qtbot) -> None:
+    settings = AppSettings(
+        detection_mode=DETECTION_MODE_SPECTRAL,
+        spectral_index=SPECTRAL_INDEX_NDWI,
+    )
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+
+    mndwi_position = dialog._spectral_index_combo.findData(SPECTRAL_INDEX_MNDWI)
+    dialog._spectral_index_combo.setCurrentIndex(mndwi_position)
+
+    result = dialog.result_settings()
+
+    assert result.spectral_index == SPECTRAL_INDEX_MNDWI
+
+
+def test_hint_changes_with_spectral_index_selection(qtbot) -> None:
+    settings = AppSettings(
+        detection_mode=DETECTION_MODE_SPECTRAL,
+        spectral_index=SPECTRAL_INDEX_NDWI,
+    )
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+
+    ndwi_hint = dialog._detection_hint.text()
+
+    mndwi_position = dialog._spectral_index_combo.findData(SPECTRAL_INDEX_MNDWI)
+    dialog._spectral_index_combo.setCurrentIndex(mndwi_position)
+
+    assert dialog._detection_hint.text() != ndwi_hint
+    assert "MNDWI" in dialog._detection_hint.text()
+
+
+def test_hsv_mode_selection_is_unaffected_by_spectral_index_field(qtbot) -> None:
+    """The spectral-index combo carries a value even in HSV mode, but it is
+    not surfaced in the hint text while HSV is selected."""
+    settings = AppSettings(
+        detection_mode=DETECTION_MODE_HSV,
+        spectral_index=SPECTRAL_INDEX_MNDWI,
+    )
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+
+    assert "MNDWI" not in dialog._detection_hint.text()
+    assert dialog._detection_hint.text() == (
+        "Use HSV detection for PNG, JPEG and standard RGB imagery."
+    )
+
+
+def test_changing_spectral_index_preserves_other_settings(qtbot) -> None:
+    """Switching spectral index must not disturb unrelated settings fields."""
+    settings = AppSettings(
+        before_dir="/tmp/before",
+        after_dir="/tmp/after",
+        output_dir="/tmp/output",
+        hsv_lower=(10, 20, 30),
+        hsv_upper=(100, 200, 250),
+        detection_mode=DETECTION_MODE_SPECTRAL,
+        spectral_index=SPECTRAL_INDEX_NDWI,
+        dark_mode=False,
+    )
+    dialog = SettingsDialog(settings)
+    qtbot.addWidget(dialog)
+
+    mndwi_position = dialog._spectral_index_combo.findData(SPECTRAL_INDEX_MNDWI)
+    dialog._spectral_index_combo.setCurrentIndex(mndwi_position)
+
+    result = dialog.result_settings()
+
+    assert result.before_dir == settings.before_dir
+    assert result.after_dir == settings.after_dir
+    assert result.output_dir == settings.output_dir
+    assert result.hsv_lower == settings.hsv_lower
+    assert result.hsv_upper == settings.hsv_upper
+    assert result.dark_mode == settings.dark_mode
+    assert result.detection_mode == DETECTION_MODE_SPECTRAL
+    assert result.spectral_index == SPECTRAL_INDEX_MNDWI
+

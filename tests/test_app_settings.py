@@ -24,6 +24,7 @@ from src.gui.app_settings import (
     load_settings,
     save_settings,
 )
+from src.spectral_indices import SPECTRAL_INDEX_MNDWI, SPECTRAL_INDEX_NDWI
 
 
 def write_settings_json(path: Path, **overrides: object) -> None:
@@ -159,6 +160,71 @@ class TestDetectionModeValidation:
         reloaded = load_settings(settings_path)
 
         assert reloaded.detection_mode == DETECTION_MODE_SPECTRAL
+
+
+# ---------------------------------------------------------------------------
+# Spectral-index validation (invalid/missing/wrong-type persisted values)
+# ---------------------------------------------------------------------------
+class TestSpectralIndexValidation:
+    """A stored spectral index is kept only if it is a known, valid index.
+
+    Mirrors :class:`TestDetectionModeValidation`: an unrecognised
+    ``spectral_index`` from a persisted ``gui_settings.json`` must never
+    reach :class:`~src.spectral_detector.SpectralWaterDetector`, whose
+    constructor raises for unknown indices.
+    """
+
+    def test_spectral_index_defaults_to_ndwi(self) -> None:
+        """Existing installations continue to use NDWI by default."""
+        settings = AppSettings()
+
+        assert settings.spectral_index == SPECTRAL_INDEX_NDWI
+
+    def test_spectral_index_loads_from_json(self, tmp_path: Path) -> None:
+        """A persisted spectral index is restored when settings are loaded."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, spectral_index=SPECTRAL_INDEX_MNDWI)
+
+        settings = load_settings(settings_path)
+
+        assert settings.spectral_index == SPECTRAL_INDEX_MNDWI
+
+    def test_unknown_spectral_index_falls_back_to_ndwi(self, tmp_path: Path) -> None:
+        """An unrecognised string value falls back to the NDWI default."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, spectral_index="unknown")
+
+        settings = load_settings(settings_path)
+
+        assert settings.spectral_index == SPECTRAL_INDEX_NDWI
+
+    def test_missing_spectral_index_falls_back_to_ndwi(self, tmp_path: Path) -> None:
+        """An older settings file without the field defaults to NDWI."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, dark_mode=False)  # no spectral_index key
+
+        settings = load_settings(settings_path)
+
+        assert settings.spectral_index == SPECTRAL_INDEX_NDWI
+
+    def test_non_string_spectral_index_falls_back_to_ndwi(self, tmp_path: Path) -> None:
+        """A wrong JSON type (e.g. a number) falls back to NDWI, not crash."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, spectral_index=123)
+
+        settings = load_settings(settings_path)
+
+        assert settings.spectral_index == SPECTRAL_INDEX_NDWI
+
+    def test_round_trip_preserves_mndwi(self, tmp_path: Path) -> None:
+        """Saving and reloading an MNDWI settings snapshot is stable."""
+        settings_path = tmp_path / "gui_settings.json"
+        original = AppSettings(spectral_index=SPECTRAL_INDEX_MNDWI)
+
+        save_settings(original, settings_path)
+        reloaded = load_settings(settings_path)
+
+        assert reloaded.spectral_index == SPECTRAL_INDEX_MNDWI
 
 # ---------------------------------------------------------------------------
 # Cross-platform directory reconciliation (the actual fix)

@@ -3,7 +3,18 @@
 import numpy as np
 import pytest
 
-from src.spectral_indices import calculate_mndwi, calculate_ndwi
+from src.spectral_indices import (
+    SPECTRAL_INDEX_MNDWI,
+    SPECTRAL_INDEX_NDWI,
+    VALID_SPECTRAL_INDICES,
+    calculate_mndwi,
+    calculate_ndwi,
+)
+
+
+def test_valid_spectral_indices_contains_both_known_indices() -> None:
+    """The known-indices set is exactly NDWI and MNDWI."""
+    assert VALID_SPECTRAL_INDICES == {SPECTRAL_INDEX_NDWI, SPECTRAL_INDEX_MNDWI}
 
 
 def test_calculate_ndwi_returns_expected_values() -> None:

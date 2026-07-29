@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import Any, Final
 
 from src import config
+from src.spectral_indices import SPECTRAL_INDEX_NDWI, VALID_SPECTRAL_INDICES
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,7 @@ class AppSettings:
     hsv_lower: tuple[int, int, int] = config.WATER_HSV_LOWER
     hsv_upper: tuple[int, int, int] = config.WATER_HSV_UPPER
     detection_mode: str = DETECTION_MODE_HSV
+    spectral_index: str = SPECTRAL_INDEX_NDWI
     dark_mode: bool = True
 
 
@@ -94,6 +96,9 @@ def load_settings(path: Path = SETTINGS_PATH) -> AppSettings:
             hsv_upper=_as_triple(raw.get("hsv_upper"), defaults.hsv_upper),
             detection_mode=_as_detection_mode(
                 raw.get("detection_mode"), defaults.detection_mode
+            ),
+            spectral_index=_as_spectral_index(
+                raw.get("spectral_index"), defaults.spectral_index
             ),
             dark_mode=bool(raw.get("dark_mode", defaults.dark_mode)),
         )
@@ -188,6 +193,30 @@ def _as_detection_mode(value: Any, fallback: str) -> str:
         ``fallback``.
     """
     if isinstance(value, str) and value in VALID_DETECTION_MODES:
+        return value
+    return fallback
+
+
+def _as_spectral_index(value: Any, fallback: str) -> str:
+    """Coerce a JSON value into a known spectral index, falling back when invalid.
+
+    Same rationale as :func:`_as_detection_mode`: a persisted
+    ``spectral_index`` is untrusted input and must fall back to a safe
+    default rather than reach :class:`~src.spectral_detector.SpectralWaterDetector`
+    unchecked -- its constructor raises ``ValueError`` for an unknown index,
+    which would otherwise surface as an unhandled crash instead of a clean
+    settings fallback.
+
+    Args:
+        value: Raw JSON value for ``spectral_index`` (``None`` if the key
+            was absent).
+        fallback: Value to use when ``value`` is not a recognised index.
+
+    Returns:
+        ``value`` itself if it names a known spectral index, otherwise
+        ``fallback``.
+    """
+    if isinstance(value, str) and value in VALID_SPECTRAL_INDICES:
         return value
     return fallback
 

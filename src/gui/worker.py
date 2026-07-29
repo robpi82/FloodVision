@@ -50,7 +50,7 @@ def _create_detector(
             guards against silently treating it as HSV.
     """
     if settings.detection_mode == DETECTION_MODE_SPECTRAL:
-        return SpectralWaterDetector()
+        return SpectralWaterDetector(spectral_index=settings.spectral_index)
 
     if settings.detection_mode == DETECTION_MODE_HSV:
         return HSVWaterDetector(

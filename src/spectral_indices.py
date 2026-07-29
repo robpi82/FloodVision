@@ -7,7 +7,15 @@ and water detection so the functions can be reused throughout the project.
 
 from __future__ import annotations
 
+from typing import Final
+
 import numpy as np
+
+SPECTRAL_INDEX_NDWI: Final[str] = "ndwi"
+SPECTRAL_INDEX_MNDWI: Final[str] = "mndwi"
+VALID_SPECTRAL_INDICES: Final[frozenset[str]] = frozenset(
+    {SPECTRAL_INDEX_NDWI, SPECTRAL_INDEX_MNDWI}
+)
 
 
 def calculate_ndwi(

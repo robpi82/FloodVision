@@ -43,6 +43,7 @@ The current stable release v0.9.2 provides multispectral GeoTIFF processing, Sen
 * Folder path input
 * Folder browser integration
 * Detection-method selection between HSV and Sentinel-2 spectral analysis
+* Spectral index selection between NDWI and MNDWI
 * Previous / Next image navigation
 * Zoom In
 * Zoom Out
@@ -60,9 +61,16 @@ The current stable release v0.9.2 provides multispectral GeoTIFF processing, Sen
 The detection method is chosen in **Settings → Water detection method**:
 
 * HSV mode is intended for standard RGB images such as PNG, JPEG and RGB GeoTIFF files.
-* Sentinel-2 spectral mode is intended for compatible multispectral GeoTIFF files containing the required Sentinel-2 Green and NIR bands.
+* Sentinel-2 spectral mode is intended for compatible multispectral GeoTIFF files containing the required Sentinel-2 Green and NIR (NDWI) or Green and SWIR (MNDWI) bands.
 
 The choice is persisted across restarts, and the HSV threshold controls are automatically disabled while spectral mode is active.
+
+While spectral mode is active, a second control selects the spectral index:
+
+* NDWI (Green / NIR, bands B03/B08) is the default and works well for open water.
+* MNDWI (Green / SWIR, bands B03/B11) is more robust against turbid water and built-up areas.
+
+The spectral-index control is disabled while HSV mode is active, and its selection is likewise persisted across restarts.
 
 ### GeoTIFF & GIS Support
 
@@ -478,7 +486,9 @@ Current development focus:
 * GUI selection between HSV and Sentinel-2 spectral detection - done
 * Persistent, validated detection-mode setting - done
 * Automatic activation and deactivation of HSV controls based on the selected detection method - done
-* Productive selection between NDWI and MNDWI
+* Productive selection between NDWI and MNDWI - done
+* GUI selection between NDWI and MNDWI, with automatic B03/B08 or B03/B11 band resolution - done
+* Persistent, validated spectral-index setting - done
 * Processing of real Sentinel-2 Level-2A products
 * Sentinel-2 imagery import workflow
 * Spectral flood visualizations
@@ -487,7 +497,7 @@ Current development focus:
 * GIS-ready spectral analysis outputs
 * Multi-temporal flood monitoring
 
-The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis in the settings dialog; the remaining v0.10.0 work builds the operational Sentinel-2 workflow (real imagery import, configurable indices, spectral visualizations) on top of this configurable detection strategy.
+The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis, including a choice between the NDWI and MNDWI spectral indices, in the settings dialog; the remaining v0.10.0 work builds the operational Sentinel-2 workflow (real imagery import, a configurable index threshold, spectral visualizations) on top of this configurable detection strategy.
 
 ---
 
@@ -564,7 +574,7 @@ Completed development:
 Planned development:
 
 * GUI selection between HSV and Sentinel-2 spectral detection - done
-* Productive selection between NDWI and MNDWI
+* Productive selection between NDWI and MNDWI - done
 * Processing of real Sentinel-2 Level-2A products
 * Sentinel-2 imagery import workflow
 * Spectral flood visualizations

@@ -8,6 +8,7 @@ from src.gui.app_settings import (
 )
 from src.gui.worker import _create_detector
 from src.spectral_detector import SpectralWaterDetector
+from src.spectral_indices import SPECTRAL_INDEX_MNDWI
 from src.water_detection import HSVWaterDetector
 
 
@@ -47,3 +48,14 @@ def test_create_detector_raises_for_unsupported_mode() -> None:
 
     with pytest.raises(FloodVisionError, match="invalid"):
         _create_detector(settings)
+
+
+def test_create_detector_passes_spectral_index_through() -> None:
+    settings = AppSettings(
+        detection_mode=DETECTION_MODE_SPECTRAL,
+        spectral_index=SPECTRAL_INDEX_MNDWI,
+    )
+
+    detector = _create_detector(settings)
+
+    assert detector._spectral_index == SPECTRAL_INDEX_MNDWI
