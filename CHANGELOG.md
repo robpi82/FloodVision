@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [0.10.0] - In Development
+
+### Added
+
+- GUI selection between HSV color detection and Sentinel-2 spectral detection
+- `DETECTION_MODE_HSV` / `DETECTION_MODE_SPECTRAL` constants and a `VALID_DETECTION_MODES` set, replacing free-standing detection-mode strings
+- Persistent detection-mode setting, restored on the next application start
+- Validation of persisted `detection_mode` values, with a safe fallback to HSV for missing, unknown, or wrong-type values
+- Automatic activation and deactivation of the HSV threshold controls based on the selected detection method
+- Explanatory hint text in the settings dialog describing when to use HSV versus Sentinel-2 spectral detection
+- Explicit `FloodVisionError` from the GUI worker's detector factory for an unsupported detection mode
+- Automated tests for detection-mode persistence and validation (`tests/test_app_settings.py`)
+- Automated tests for HSV/spectral detector creation, including the invalid-mode error path (`tests/test_worker.py`)
+- Automated GUI tests for the settings dialog's detection-method selection (`tests/test_settings_dialog.py`)
+
+### Improved
+
+- Expanded the complete regression test suite to 203 passing tests
+
+---
+
 ### [0.9.2] - 2026-07-19
 
 ### Added

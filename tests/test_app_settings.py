@@ -16,7 +16,14 @@ from pathlib import Path
 import pytest
 
 from src import config
-from src.gui.app_settings import AppSettings, load_settings, save_settings
+from src.gui.app_settings import (
+    DETECTION_MODE_HSV,
+    DETECTION_MODE_SPECTRAL,
+    VALID_DETECTION_MODES,
+    AppSettings,
+    load_settings,
+    save_settings,
+)
 
 
 def write_settings_json(path: Path, **overrides: object) -> None:
@@ -72,16 +79,87 @@ class TestBaselineLoading:
         """Existing installations continue to use HSV detection by default."""
         settings = AppSettings()
 
-        assert settings.detection_mode == "hsv"
+        assert settings.detection_mode == DETECTION_MODE_HSV
 
     def test_detection_mode_loads_from_json(self, tmp_path: Path) -> None:
         """A persisted detection mode is restored when settings are loaded."""
         settings_path = tmp_path / "gui_settings.json"
-        write_settings_json(settings_path, detection_mode="spectral")
+        write_settings_json(settings_path, detection_mode=DETECTION_MODE_SPECTRAL)
 
         settings = load_settings(settings_path)
 
-        assert settings.detection_mode == "spectral"
+        assert settings.detection_mode == DETECTION_MODE_SPECTRAL
+# ---------------------------------------------------------------------------
+# Detection-mode validation (invalid/missing/wrong-type persisted values)
+# ---------------------------------------------------------------------------
+class TestDetectionModeValidation:
+    """A stored detection mode is kept only if it is a known, valid mode.
+
+    Mirrors :class:`TestDirectoryReconciliation` in spirit: a persisted
+    ``gui_settings.json`` is untrusted input (older file, hand-edited,
+    written by a future version with modes this build does not know), so
+    an unrecognised value must never reach the batch worker unchanged.
+    """
+
+    def test_valid_detection_modes_contains_both_known_modes(self) -> None:
+        """The known-modes set is exactly HSV and spectral."""
+        assert VALID_DETECTION_MODES == {DETECTION_MODE_HSV, DETECTION_MODE_SPECTRAL}
+
+    def test_unknown_detection_mode_falls_back_to_hsv(self, tmp_path: Path) -> None:
+        """An unrecognised string value falls back to the HSV default."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, detection_mode="unknown")
+
+        settings = load_settings(settings_path)
+
+        assert settings.detection_mode == DETECTION_MODE_HSV
+
+    def test_missing_detection_mode_falls_back_to_hsv(self, tmp_path: Path) -> None:
+        """An older settings file without the field defaults to HSV."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, dark_mode=False)  # no detection_mode key
+
+        settings = load_settings(settings_path)
+
+        assert settings.detection_mode == DETECTION_MODE_HSV
+
+    def test_non_string_detection_mode_falls_back_to_hsv(self, tmp_path: Path) -> None:
+        """A wrong JSON type (e.g. a number) falls back to HSV, not crash."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, detection_mode=123)
+
+        settings = load_settings(settings_path)
+
+        assert settings.detection_mode == DETECTION_MODE_HSV
+
+    def test_null_detection_mode_falls_back_to_hsv(self, tmp_path: Path) -> None:
+        """An explicit JSON ``null`` falls back to HSV, not crash."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, detection_mode=None)
+
+        settings = load_settings(settings_path)
+
+        assert settings.detection_mode == DETECTION_MODE_HSV
+
+    def test_valid_spectral_mode_is_preserved(self, tmp_path: Path) -> None:
+        """A recognised, valid mode passes through unchanged."""
+        settings_path = tmp_path / "gui_settings.json"
+        write_settings_json(settings_path, detection_mode=DETECTION_MODE_SPECTRAL)
+
+        settings = load_settings(settings_path)
+
+        assert settings.detection_mode == DETECTION_MODE_SPECTRAL
+
+    def test_round_trip_preserves_spectral_mode(self, tmp_path: Path) -> None:
+        """Saving and reloading a spectral-mode settings snapshot is stable."""
+        settings_path = tmp_path / "gui_settings.json"
+        original = AppSettings(detection_mode=DETECTION_MODE_SPECTRAL)
+
+        save_settings(original, settings_path)
+        reloaded = load_settings(settings_path)
+
+        assert reloaded.detection_mode == DETECTION_MODE_SPECTRAL
+
 # ---------------------------------------------------------------------------
 # Cross-platform directory reconciliation (the actual fix)
 # ---------------------------------------------------------------------------

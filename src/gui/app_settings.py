@@ -35,6 +35,12 @@ logger = logging.getLogger(__name__)
 
 SETTINGS_PATH: Final[Path] = config.PROJECT_ROOT / "gui_settings.json"
 
+DETECTION_MODE_HSV: Final[str] = "hsv"
+DETECTION_MODE_SPECTRAL: Final[str] = "spectral"
+VALID_DETECTION_MODES: Final[frozenset[str]] = frozenset(
+    {DETECTION_MODE_HSV, DETECTION_MODE_SPECTRAL}
+)
+
 
 @dataclass(frozen=True)
 class AppSettings:
@@ -43,7 +49,7 @@ class AppSettings:
     output_dir: str = str(config.OUTPUT_DATA_DIR)
     hsv_lower: tuple[int, int, int] = config.WATER_HSV_LOWER
     hsv_upper: tuple[int, int, int] = config.WATER_HSV_UPPER
-    detection_mode: str = "hsv"
+    detection_mode: str = DETECTION_MODE_HSV
     dark_mode: bool = True
 
 
@@ -86,8 +92,8 @@ def load_settings(path: Path = SETTINGS_PATH) -> AppSettings:
             ),
             hsv_lower=_as_triple(raw.get("hsv_lower"), defaults.hsv_lower),
             hsv_upper=_as_triple(raw.get("hsv_upper"), defaults.hsv_upper),
-            detection_mode=str(
-                raw.get("detection_mode", defaults.detection_mode)
+            detection_mode=_as_detection_mode(
+                raw.get("detection_mode"), defaults.detection_mode
             ),
             dark_mode=bool(raw.get("dark_mode", defaults.dark_mode)),
         )
@@ -160,6 +166,30 @@ def _reconcile_directory(stored: Any, default: str, field_name: str) -> str:
         default,
     )
     return default
+
+
+def _as_detection_mode(value: Any, fallback: str) -> str:
+    """Coerce a JSON value into a known detection mode, falling back when invalid.
+
+    A persisted ``detection_mode`` is untrusted input, just like the
+    directory fields above: it may come from an older settings file that
+    predates this field, from manual editing, or from a future version
+    with modes this build does not know about. Any of those must fall
+    back to a safe default rather than reach the batch worker, which
+    trusts ``AppSettings.detection_mode`` unconditionally.
+
+    Args:
+        value: Raw JSON value for ``detection_mode`` (``None`` if the key
+            was absent).
+        fallback: Value to use when ``value`` is not a recognised mode.
+
+    Returns:
+        ``value`` itself if it names a known detection mode, otherwise
+        ``fallback``.
+    """
+    if isinstance(value, str) and value in VALID_DETECTION_MODES:
+        return value
+    return fallback
 
 
 def _as_triple(value: Any, fallback: tuple[int, int, int]) -> tuple[int, int, int]:

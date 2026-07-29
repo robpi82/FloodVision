@@ -12,12 +12,14 @@ from dataclasses import replace
 
 from PySide6.QtWidgets import (
     QCheckBox,
+    QComboBox,
     QDialog,
     QDialogButtonBox,
     QFileDialog,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
+    QLabel,
     QLineEdit,
     QMessageBox,
     QPushButton,
@@ -26,10 +28,20 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.gui.app_settings import AppSettings
+from src.gui.app_settings import (
+    DETECTION_MODE_HSV,
+    DETECTION_MODE_SPECTRAL,
+    AppSettings,
+)
 
 _HSV_MAXIMA: tuple[int, int, int] = (179, 255, 255)
 _HSV_CHANNELS: tuple[str, str, str] = ("H", "S", "V")
+
+_HSV_HINT: str = "Use HSV detection for PNG, JPEG and standard RGB imagery."
+_SPECTRAL_HINT: str = (
+    "Use spectral detection for compatible multispectral Sentinel-2 "
+    "GeoTIFF files containing the required Green and NIR bands."
+)
 
 
 class SettingsDialog(QDialog):
@@ -47,14 +59,39 @@ class SettingsDialog(QDialog):
         self.setModal(True)
         self._initial = settings
 
+        self._detection_mode_combo = QComboBox()
+        self._detection_mode_combo.addItem(
+            "HSV color detection",
+            DETECTION_MODE_HSV,
+        )
+        self._detection_mode_combo.addItem(
+            "Sentinel-2 spectral detection",
+            DETECTION_MODE_SPECTRAL,
+        )
+        index = self._detection_mode_combo.findData(settings.detection_mode)
+        if index >= 0:
+            self._detection_mode_combo.setCurrentIndex(index)
+        self._detection_mode_combo.currentIndexChanged.connect(
+            self._update_detection_controls
+        )
+
+        self._detection_hint = QLabel()
+        self._detection_hint.setWordWrap(True)
+
+        detection_form = QFormLayout()
+        detection_form.addRow("Detection method:", self._detection_mode_combo)
+        detection_form.addRow(self._detection_hint)
+        detection_box = QGroupBox("Water detection method")
+        detection_box.setLayout(detection_form)
+
         self._lower = self._make_hsv_row(settings.hsv_lower)
         self._upper = self._make_hsv_row(settings.hsv_upper)
 
         hsv_form = QFormLayout()
         hsv_form.addRow("Lower bound (H, S, V):", _row_widget(self._lower))
         hsv_form.addRow("Upper bound (H, S, V):", _row_widget(self._upper))
-        hsv_box = QGroupBox("Water detection - HSV thresholds")
-        hsv_box.setLayout(hsv_form)
+        self._hsv_box = QGroupBox("Water detection - HSV thresholds")
+        self._hsv_box.setLayout(hsv_form)
 
         self._output_edit = QLineEdit(settings.output_dir)
         browse = QPushButton("Browse...")
@@ -75,10 +112,13 @@ class SettingsDialog(QDialog):
         buttons.rejected.connect(self.reject)
 
         layout = QVBoxLayout(self)
-        layout.addWidget(hsv_box)
+        layout.addWidget(detection_box)
+        layout.addWidget(self._hsv_box)
         layout.addWidget(output_box)
         layout.addWidget(self._dark_check)
         layout.addWidget(buttons)
+
+        self._update_detection_controls()
 
     def result_settings(self) -> AppSettings:
         """Return a new settings snapshot reflecting the dialog state.
@@ -88,11 +128,24 @@ class SettingsDialog(QDialog):
         """
         return replace(
             self._initial,
+            detection_mode=self._detection_mode_combo.currentData(),
             hsv_lower=_values(self._lower),
             hsv_upper=_values(self._upper),
             output_dir=self._output_edit.text().strip(),
             dark_mode=self._dark_check.isChecked(),
         )
+
+    def _update_detection_controls(self) -> None:
+        """Enable/disable the HSV box and update the hint for the selected mode.
+
+        The HSV thresholds are meaningless in spectral mode, so the whole
+        group box is disabled rather than hidden -- the user can still see
+        their current HSV values, just not edit them, and nothing is lost
+        when switching back.
+        """
+        is_hsv = self._detection_mode_combo.currentData() == DETECTION_MODE_HSV
+        self._hsv_box.setEnabled(is_hsv)
+        self._detection_hint.setText(_HSV_HINT if is_hsv else _SPECTRAL_HINT)
 
     def _make_hsv_row(self, values: tuple[int, int, int]) -> list[QSpinBox]:
         """Create three spin boxes with correct OpenCV HSV ranges.

@@ -24,25 +24,44 @@ from PySide6.QtCore import QThread, Signal
 from src import report_generator
 from src.batch_processor import BatchProcessor, FloodComparisonResult
 from src.exceptions import FloodVisionError
-from src.gui.app_settings import AppSettings
+from src.gui.app_settings import (
+    DETECTION_MODE_HSV,
+    DETECTION_MODE_SPECTRAL,
+    AppSettings,
+)
 from src.image_loader import ImageLoader
-from src.water_detection import HSVRange, HSVWaterDetector
 from src.spectral_detector import SpectralWaterDetector
+from src.water_detection import HSVRange, HSVWaterDetector
 
 logger = logging.getLogger(__name__)
 
 def _create_detector(
     settings: AppSettings,
 ) -> HSVWaterDetector | SpectralWaterDetector:
-    """Create the configured water-detection strategy."""
-    if settings.detection_mode == "spectral":
+    """Create the configured water-detection strategy.
+
+    Raises:
+        FloodVisionError: If ``settings.detection_mode`` is not one of the
+            known detection modes. This should not happen through normal
+            use of the GUI, since :func:`src.gui.app_settings.load_settings`
+            and the settings dialog only ever produce valid modes -- but a
+            hand-built ``AppSettings`` instance (e.g. in a script or a
+            future caller) could still carry an invalid value, and this
+            guards against silently treating it as HSV.
+    """
+    if settings.detection_mode == DETECTION_MODE_SPECTRAL:
         return SpectralWaterDetector()
 
-    return HSVWaterDetector(
-        hsv_range=HSVRange(
-            lower=settings.hsv_lower,
-            upper=settings.hsv_upper,
+    if settings.detection_mode == DETECTION_MODE_HSV:
+        return HSVWaterDetector(
+            hsv_range=HSVRange(
+                lower=settings.hsv_lower,
+                upper=settings.hsv_upper,
+            )
         )
+
+    raise FloodVisionError(
+        f"Unsupported detection mode: {settings.detection_mode!r}"
     )
 
 class BatchWorker(QThread):
@@ -118,7 +137,7 @@ class BatchWorker(QThread):
         except FloodVisionError as error:
             logger.error("%s", error)
             self.batch_failed.emit("Batch could not start", str(error))
-        except Exception:  # noqa: BLE001 -- GUI must never crash from backend
+        except Exception:
             logger.exception("Unexpected error in batch worker")
             self.batch_failed.emit(
                 "Unexpected error",

@@ -42,6 +42,7 @@ The current stable release v0.9.2 provides multispectral GeoTIFF processing, Sen
 * Drag & Drop folder support
 * Folder path input
 * Folder browser integration
+* Detection-method selection between HSV and Sentinel-2 spectral analysis
 * Previous / Next image navigation
 * Zoom In
 * Zoom Out
@@ -55,6 +56,13 @@ The current stable release v0.9.2 provides multispectral GeoTIFF processing, Sen
 * Automatic GeoTIFF metadata display
 * Progress tracking
 * Batch processing summary
+
+The detection method is chosen in **Settings → Water detection method**:
+
+* HSV mode is intended for standard RGB images such as PNG, JPEG and RGB GeoTIFF files.
+* Sentinel-2 spectral mode is intended for compatible multispectral GeoTIFF files containing the required Sentinel-2 Green and NIR bands.
+
+The choice is persisted across restarts, and the HSV threshold controls are automatically disabled while spectral mode is active.
 
 ### GeoTIFF & GIS Support
 
@@ -467,7 +475,9 @@ Current development focus:
 * Configurable water-detection mode with HSV as the backward-compatible default
 * Programmatic selection between HSV and Sentinel-2 spectral detection
 * Dedicated detector factory in the GUI worker
-* GUI selection between HSV and Sentinel-2 spectral detection
+* GUI selection between HSV and Sentinel-2 spectral detection - done
+* Persistent, validated detection-mode setting - done
+* Automatic activation and deactivation of HSV controls based on the selected detection method - done
 * Productive selection between NDWI and MNDWI
 * Processing of real Sentinel-2 Level-2A products
 * Sentinel-2 imagery import workflow
@@ -477,7 +487,7 @@ Current development focus:
 * GIS-ready spectral analysis outputs
 * Multi-temporal flood monitoring
 
-The first v0.10.0 implementation work focuses on making the detection strategy configurable. This prepares the desktop application to evolve from an HSV-only GUI workflow toward user-selectable HSV and Sentinel-2 spectral analysis.
+The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis in the settings dialog; the remaining v0.10.0 work builds the operational Sentinel-2 workflow (real imagery import, configurable indices, spectral visualizations) on top of this configurable detection strategy.
 
 ---
 
@@ -553,7 +563,7 @@ Completed development:
 
 Planned development:
 
-* GUI selection between HSV and Sentinel-2 spectral detection
+* GUI selection between HSV and Sentinel-2 spectral detection - done
 * Productive selection between NDWI and MNDWI
 * Processing of real Sentinel-2 Level-2A products
 * Sentinel-2 imagery import workflow
