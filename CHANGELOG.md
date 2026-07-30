@@ -55,10 +55,13 @@ All notable changes to this project will be documented in this file.
 - Bilinear resampling (configurable) for pixel values; always nearest-neighbour for validity masks, so mask boundaries stay binary instead of blurring into meaningless fractional values
 - `Sentinel2BandStackError` exception for domain-level failures (missing files, unreadable files, bands in mismatched coordinate reference systems)
 - Automated tests covering same-resolution and mixed-resolution stacking, bilinear-vs-nearest resampling behaviour, resampled validity-mask propagation, and all error paths (`tests/test_sentinel2_band_stacker.py`, new)
+- `src/sentinel2_import.py`: writes the aligned, stacked raster from `stack_sentinel2_bands()` back out as a single combined, georeferenced multi-band GeoTIFF, with each band's Sentinel-2 code embedded as its band description
+- The combined file is a completely ordinary GeoTIFF from the rest of the application's point of view -- it can be dropped straight into `data/before`/`data/after` and processed by the unmodified `GeoTiffRasterLoader`, `SpectralWaterDetector` and `BatchProcessor`, with no further code changes required anywhere
+- Automated tests confirming the combined file's structure (band count, order, CRS, resampled grid) and, critically, a full round trip through the existing unmodified loader and spectral detector (`tests/test_sentinel2_import.py`, new)
 
 ### Improved
 
-- Expanded the complete regression test suite to 282 passing tests
+- Expanded the complete regression test suite to 292 passing tests
 
 ---
 

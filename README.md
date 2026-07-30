@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-pink)
-![Tests](https://img.shields.io/badge/tests-282%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-292%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -267,7 +267,9 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 * Bilinear vs nearest-neighbour resampling behaviour tests
 * Resampled validity-mask propagation tests
 * Sentinel-2 band CRS mismatch validation tests
-* Complete regression test suite with 282 passing tests
+* Combined multi-band Sentinel-2 GeoTIFF writer tests
+* Round-trip tests confirming the combined GeoTIFF is readable by the unmodified existing GeoTIFF loader and spectral detector
+* Complete regression test suite with 292 passing tests
 * End-to-end Sentinel-2 Before/After batch integration test
 * Productive spectral detector routing test
 * Georeferenced spectral flood mask export validation
@@ -349,7 +351,7 @@ python -m pytest -v
 Latest verified stable baseline:
 
 ```text
-282 passed, 31 warnings
+292 passed, 48 warnings
 ```
 
 ---
@@ -510,10 +512,11 @@ Current development focus:
 * GIS-ready spectral analysis outputs - done
 * Multi-index flood classification
 * Individual Sentinel-2 band file loading, resolution checking and 10 m/20 m band stacking - done (backend)
-* Sentinel-2 Level-2A ``.SAFE`` folder import workflow (GUI)
+* Combined multi-band GeoTIFF writer for individually-supplied Sentinel-2 band files, producing a normal file droppable into `data/before`/`data/after` - done (backend)
+* Sentinel-2 Level-2A `.SAFE` folder auto-discovery and GUI import workflow
 * Multi-temporal flood monitoring
 
-The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis, including a choice between the NDWI and MNDWI spectral indices, a configurable classification threshold, a false-colour visualization of the raw index raster, and a georeferenced GeoTIFF export of that raster for use in GIS software, in the settings dialog, preview tabs and batch outputs. The backend can now also combine individual single-band Sentinel-2 files -- the shape real Level-2A products ship in -- into one aligned raster, resampling coarser 20 m bands onto the finer 10 m grid; the remaining v0.10.0 work wires this into a GUI import workflow that discovers and selects those band files from a ``.SAFE`` folder.
+The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis, including a choice between the NDWI and MNDWI spectral indices, a configurable classification threshold, a false-colour visualization of the raw index raster, and a georeferenced GeoTIFF export of that raster for use in GIS software, in the settings dialog, preview tabs and batch outputs. The backend can now also combine individual single-band Sentinel-2 files -- the shape real Level-2A products ship in -- into one aligned, georeferenced GeoTIFF file compatible with the rest of the application unmodified; the remaining v0.10.0 work is a GUI workflow that discovers those band files directly from a `.SAFE` folder rather than requiring them to be selected manually.
 
 ---
 
@@ -596,7 +599,8 @@ Planned development:
 * NDWI and MNDWI result layers - done
 * GIS-ready spectral analysis outputs - done
 * Individual Sentinel-2 band file loading, resolution checking and 10 m/20 m band stacking - done (backend)
-* Sentinel-2 Level-2A ``.SAFE`` folder import workflow (GUI)
+* Combined multi-band GeoTIFF writer for individually-supplied Sentinel-2 band files - done (backend)
+* Sentinel-2 Level-2A `.SAFE` folder auto-discovery and GUI import workflow
 * Multi-index flood classification
 * Multi-temporal flood monitoring
 
