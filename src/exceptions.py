@@ -120,3 +120,22 @@ class GeoTiffExportError(FloodVisionError):
         self.path = path
         self.reason = reason
         super().__init__(f"Failed to write georeferenced GeoTIFF '{path}': {reason}")
+
+
+class Sentinel2BandStackError(FloodVisionError):
+    """Raised when individual Sentinel-2 band files cannot be combined.
+
+    Covers cases the caller can plausibly fix by supplying different
+    input files: bands in different coordinate reference systems (e.g.
+    tiles from two different UTM zones), a band file that cannot be
+    read, or no band files at all. It is a *domain* error -- bad input
+    data -- not a programming bug, hence :class:`FloodVisionError`
+    rather than a bare exception.
+
+    Attributes:
+        reason: Human-readable rejection reason.
+    """
+
+    def __init__(self, reason: str) -> None:
+        self.reason = reason
+        super().__init__(f"Cannot stack Sentinel-2 bands: {reason}")

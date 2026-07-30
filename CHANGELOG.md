@@ -50,10 +50,15 @@ All notable changes to this project will be documented in this file.
 - NaN written as a real NoData value on the exported index GeoTIFF, unlike the flood-mask export's deliberate choice not to define one -- a missing index value is a genuinely different case from a valid two-class flood mask
 - Automated tests for the georeferenced index export, mirroring the existing flood-mask export tests (`tests/test_geotiff_export.py`)
 - Automated integration tests confirming index GeoTIFFs are produced only for spectral-mode runs on GeoTIFF pairs, never for HSV or for plain image pairs (`tests/test_spectral_batch_integration.py`)
+- `src/sentinel2_band_stacker.py`: combines individual single-band Sentinel-2 raster files -- the shape real Level-2A `.SAFE` products ship in -- into one aligned, stacked raster compatible with the existing `GeoTiffRasterData`/`SpectralWaterDetector` pipeline, requiring no changes to either
+- Automatic resolution checking against `SENTINEL2_BANDS` metadata, resampling any band coarser than the finest requested band (e.g. 20 m B11) onto that band's exact pixel grid
+- Bilinear resampling (configurable) for pixel values; always nearest-neighbour for validity masks, so mask boundaries stay binary instead of blurring into meaningless fractional values
+- `Sentinel2BandStackError` exception for domain-level failures (missing files, unreadable files, bands in mismatched coordinate reference systems)
+- Automated tests covering same-resolution and mixed-resolution stacking, bilinear-vs-nearest resampling behaviour, resampled validity-mask propagation, and all error paths (`tests/test_sentinel2_band_stacker.py`, new)
 
 ### Improved
 
-- Expanded the complete regression test suite to 268 passing tests
+- Expanded the complete regression test suite to 282 passing tests
 
 ---
 

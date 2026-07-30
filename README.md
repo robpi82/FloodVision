@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-pink)
-![Tests](https://img.shields.io/badge/tests-268%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-282%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -262,7 +262,12 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 * Valid-mask shape validation tests
 * Invalid-pixel exclusion tests
 * Fully masked raster handling tests
-* Complete regression test suite with 268 passing tests
+* Individual Sentinel-2 band file stacking tests
+* Mixed-resolution (10 m/20 m) band resampling tests
+* Bilinear vs nearest-neighbour resampling behaviour tests
+* Resampled validity-mask propagation tests
+* Sentinel-2 band CRS mismatch validation tests
+* Complete regression test suite with 282 passing tests
 * End-to-end Sentinel-2 Before/After batch integration test
 * Productive spectral detector routing test
 * Georeferenced spectral flood mask export validation
@@ -344,7 +349,7 @@ python -m pytest -v
 Latest verified stable baseline:
 
 ```text
-268 passed, 9 warnings
+282 passed, 31 warnings
 ```
 
 ---
@@ -500,15 +505,15 @@ Current development focus:
 * Persistent, validated spectral-index setting - done
 * Configurable spectral-index threshold, replacing the previous fixed 0.1 value - done
 * Persistent, range-validated spectral-threshold setting - done
-* Processing of real Sentinel-2 Level-2A products
-* Sentinel-2 imagery import workflow
 * Spectral flood visualizations - done
 * NDWI and MNDWI result layers - done
-* Multi-index flood classification
 * GIS-ready spectral analysis outputs - done
+* Multi-index flood classification
+* Individual Sentinel-2 band file loading, resolution checking and 10 m/20 m band stacking - done (backend)
+* Sentinel-2 Level-2A ``.SAFE`` folder import workflow (GUI)
 * Multi-temporal flood monitoring
 
-The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis, including a choice between the NDWI and MNDWI spectral indices, a configurable classification threshold, a false-colour visualization of the raw index raster, and a georeferenced GeoTIFF export of that raster for use in GIS software, in the settings dialog, preview tabs and batch outputs; the remaining v0.10.0 work is the operational Sentinel-2 import workflow (real Level-2A products, band resolution, resampling) on top of this configurable detection strategy.
+The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis, including a choice between the NDWI and MNDWI spectral indices, a configurable classification threshold, a false-colour visualization of the raw index raster, and a georeferenced GeoTIFF export of that raster for use in GIS software, in the settings dialog, preview tabs and batch outputs. The backend can now also combine individual single-band Sentinel-2 files -- the shape real Level-2A products ship in -- into one aligned raster, resampling coarser 20 m bands onto the finer 10 m grid; the remaining v0.10.0 work wires this into a GUI import workflow that discovers and selects those band files from a ``.SAFE`` folder.
 
 ---
 
@@ -590,8 +595,8 @@ Planned development:
 * Spectral flood visualizations - done
 * NDWI and MNDWI result layers - done
 * GIS-ready spectral analysis outputs - done
-* Processing of real Sentinel-2 Level-2A products
-* Sentinel-2 imagery import workflow
+* Individual Sentinel-2 band file loading, resolution checking and 10 m/20 m band stacking - done (backend)
+* Sentinel-2 Level-2A ``.SAFE`` folder import workflow (GUI)
 * Multi-index flood classification
 * Multi-temporal flood monitoring
 
