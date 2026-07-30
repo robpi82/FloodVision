@@ -84,6 +84,8 @@ For spectral-mode runs on GeoTIFF pairs specifically, the raw NDWI/MNDWI values 
 
 Real Sentinel-2 products ship each spectral band as its own file, often at different native resolutions (10 m for B02/B03/B04/B08, 20 m for B11). **File → Import Sentinel-2 Bands...** opens a dialog to select those individual files (or point at a whole folder and let it detect band codes automatically from filenames such as `T33UUP_20230615T101031_B03_10m.jp2`), then combines them -- resampling any 20 m band onto the finer 10 m grid -- into a single georeferenced GeoTIFF written directly into the Before or After folder, ready for a completely normal batch run.
 
+This workflow has been verified end-to-end against real Copernicus Data Space Ecosystem Sentinel-2 L2A data (not just synthetic test fixtures): two full-resolution acquisitions of the same tile (10980 x 10980 px each) were imported, combined, and run through a complete spectral batch analysis, including the georeferenced index export, without any code changes.
+
 ### GeoTIFF & GIS Support
 
 Available since FloodVision v0.8.0:
@@ -518,10 +520,11 @@ Current development focus:
 * Individual Sentinel-2 band file loading, resolution checking and 10 m/20 m band stacking - done (backend)
 * Combined multi-band GeoTIFF writer for individually-supplied Sentinel-2 band files, producing a normal file droppable into `data/before`/`data/after` - done (backend)
 * GUI dialog to select individual Sentinel-2 band files or a folder and combine them into a Before/After GeoTIFF - done
+* Verified end-to-end against real Copernicus Data Space Ecosystem Sentinel-2 L2A data (full-resolution 10980 x 10980 px tiles), not just synthetic test fixtures - done
 * Sentinel-2 Level-2A `.SAFE` folder auto-discovery (detecting resolution subfolders and required bands automatically)
 * Multi-temporal flood monitoring
 
-The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis, including a choice between the NDWI and MNDWI spectral indices, a configurable classification threshold, a false-colour visualization of the raw index raster, and a georeferenced GeoTIFF export of that raster for use in GIS software, in the settings dialog, preview tabs and batch outputs. A new File menu entry lets a user select individual Sentinel-2 band files -- or point at a whole folder -- and combine them directly into the Before or After folder as a normal, ready-to-process GeoTIFF; the remaining v0.10.0 work is teaching that same workflow to auto-discover the band files from a `.SAFE` product's folder structure, rather than requiring manual selection.
+The desktop application now offers user-selectable HSV and Sentinel-2 spectral analysis, including a choice between the NDWI and MNDWI spectral indices, a configurable classification threshold, a false-colour visualization of the raw index raster, a georeferenced GeoTIFF export of that raster, and a Sentinel-2 band import dialog, all verified against real Copernicus data end-to-end; the remaining v0.10.0 work is teaching that same import workflow to auto-discover the band files from a `.SAFE` product's folder structure automatically, rather than requiring manual per-resolution selection.
 
 ---
 
@@ -606,6 +609,7 @@ Planned development:
 * Individual Sentinel-2 band file loading, resolution checking and 10 m/20 m band stacking - done (backend)
 * Combined multi-band GeoTIFF writer for individually-supplied Sentinel-2 band files - done (backend)
 * GUI dialog to select individual Sentinel-2 band files or a folder and combine them into a Before/After GeoTIFF - done
+* Verified end-to-end against real Copernicus Data Space Ecosystem Sentinel-2 L2A data - done
 * Sentinel-2 Level-2A `.SAFE` folder auto-discovery
 * Multi-index flood classification
 * Multi-temporal flood monitoring

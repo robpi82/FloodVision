@@ -63,6 +63,11 @@ All notable changes to this project will be documented in this file.
 - Combine failures (mismatched CRS, missing files) are shown inline in the dialog rather than crashing the application
 - Automated tests for band-code detection, adding/removing files, folder scanning, and both the success and failure paths of combining (`tests/test_sentinel2_import_dialog.py`, new)
 
+### Verified
+
+- The complete Sentinel-2 workflow (band import, resampling, spectral detection, false-colour visualization, georeferenced index export) confirmed end-to-end against real Copernicus Data Space Ecosystem Sentinel-2 L2A data, not just synthetic test fixtures: two full-resolution acquisitions (10980 x 10980 px each) of the same tile, imported via the new GUI dialog and run through a complete batch analysis without any code changes
+- Along the way, confirmed the import dialog's band-code detection and per-band resampling work correctly against real ESA filenames and native JPEG2000 (`.jp2`) band files, not only the GeoTIFF fixtures used in automated tests
+
 ### Improved
 
 - Expanded the complete regression test suite to 312 passing tests
