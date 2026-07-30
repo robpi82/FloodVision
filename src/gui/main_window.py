@@ -42,6 +42,7 @@ from src.gui.image_view import ImageView
 from src.gui.log_console import LogConsole
 from src.gui.log_handler import SUCCESS, QtLogHandler
 from src.gui.navigator import PairEntry, PairNavigator
+from src.gui.sentinel2_import_dialog import Sentinel2ImportDialog
 from src.gui.settings_dialog import SettingsDialog
 from src.gui.statistics_panel import StatisticsPanel
 from src.gui.summary_dialog import SummaryDialog
@@ -304,6 +305,10 @@ class MainWindow(QMainWindow):
         )
         self._add_action(file_menu, "Open Output Folder...", self._on_open_output)
         file_menu.addSeparator()
+        self._add_action(
+            file_menu, "Import Sentinel-2 Bands...", self._on_import_sentinel2_bands
+        )
+        file_menu.addSeparator()
         self._run_action = self._add_action(
             file_menu, "Run Analysis", self._on_start, shortcut="Ctrl+R"
         )
@@ -432,6 +437,21 @@ class MainWindow(QMainWindow):
             app = QApplication.instance()
             if isinstance(app, QApplication):
                 theme.apply_theme(app, dark=self._settings.dark_mode)
+
+    def _on_import_sentinel2_bands(self) -> None:
+        """Open the Sentinel-2 band import dialog.
+
+        The dialog writes its combined GeoTIFF directly into the
+        current Before/After folders; nothing further needs to happen
+        here afterwards, since those folders are only scanned again
+        when the user starts a batch run.
+        """
+        dialog = Sentinel2ImportDialog(
+            before_dir=self._before_edit.text().strip(),
+            after_dir=self._after_edit.text().strip(),
+            parent=self,
+        )
+        dialog.exec()
 
     def _on_previous(self) -> None:
         """Navigate to the previous processed pair."""

@@ -58,10 +58,14 @@ All notable changes to this project will be documented in this file.
 - `src/sentinel2_import.py`: writes the aligned, stacked raster from `stack_sentinel2_bands()` back out as a single combined, georeferenced multi-band GeoTIFF, with each band's Sentinel-2 code embedded as its band description
 - The combined file is a completely ordinary GeoTIFF from the rest of the application's point of view -- it can be dropped straight into `data/before`/`data/after` and processed by the unmodified `GeoTiffRasterLoader`, `SpectralWaterDetector` and `BatchProcessor`, with no further code changes required anywhere
 - Automated tests confirming the combined file's structure (band count, order, CRS, resampled grid) and, critically, a full round trip through the existing unmodified loader and spectral detector (`tests/test_sentinel2_import.py`, new)
+- `src/gui/sentinel2_import_dialog.py`: new **File → Import Sentinel-2 Bands...** dialog wrapping `combine_sentinel2_bands_to_geotiff()` -- select individual band files or a whole folder, review detected bands and resolutions in a table, choose Before/After and an output name, and combine with one click
+- Best-effort Sentinel-2 band-code detection from filenames (case-insensitive, e.g. `T33UUP_20230615T101031_B03_10m.jp2` → `B03`), with explicit warnings for unrecognised files when hand-picked, and silent skipping of irrelevant files (metadata, thumbnails) during a folder scan
+- Combine failures (mismatched CRS, missing files) are shown inline in the dialog rather than crashing the application
+- Automated tests for band-code detection, adding/removing files, folder scanning, and both the success and failure paths of combining (`tests/test_sentinel2_import_dialog.py`, new)
 
 ### Improved
 
-- Expanded the complete regression test suite to 292 passing tests
+- Expanded the complete regression test suite to 312 passing tests
 
 ---
 
