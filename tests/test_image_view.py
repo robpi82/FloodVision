@@ -11,7 +11,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.gui.image_view import ImageView
+import numpy as np
+from PIL import Image
+from PySide6.QtGui import QImageReader
+
+from src.gui.image_view import ImageView, ZoomableImageView
 
 
 def test_image_view_has_five_tabs(qtbot) -> None:
@@ -82,3 +86,60 @@ def test_clear_all_resets_the_spectral_index_tab(qtbot, tmp_path: Path) -> None:
     view.clear_all()
 
     assert view._views["spectral_index"]._item is None
+
+
+# ---------------------------------------------------------------------------
+# Qt image allocation limit (full-resolution real-world previews)
+# ---------------------------------------------------------------------------
+class TestImageAllocationLimit:
+    """A large but legitimate preview image must not silently fail to load.
+
+    A full-resolution Sentinel-2 tile's preview PNG (10980 x 10980 px,
+    ~345 MB decoded as RGB) exceeds Qt's default 256 MB decoded-image
+    allocation limit -- a safeguard against malicious "decompression
+    bomb" images, not something meant to reject this application's own
+    locally-generated batch output. ``gui_main.py`` disables the limit
+    at startup (``QImageReader.setAllocationLimit(0)``); these tests
+    reproduce the failure and its fix at a much smaller, fast-to-write
+    scale by lowering the limit instead of generating a genuinely huge
+    fixture file, since the underlying mechanism is identical either way.
+    """
+
+    def test_image_exceeding_the_allocation_limit_falls_back_to_placeholder(
+        self, qtbot, tmp_path: Path
+    ) -> None:
+        """Documents the bug class: without raising the limit, a large
+        (but entirely legitimate) preview silently shows as empty."""
+        image_path = tmp_path / "large.png"
+        Image.fromarray(np.zeros((2000, 2000, 3), dtype=np.uint8)).save(image_path)
+
+        original_limit = QImageReader.allocationLimit()
+        QImageReader.setAllocationLimit(1)  # 1 MB -- far below this image's size
+        try:
+            view = ZoomableImageView(placeholder="No image yet")
+            qtbot.addWidget(view)
+            view.show_image(image_path)
+
+            assert view._item is None
+        finally:
+            QImageReader.setAllocationLimit(original_limit)
+
+    def test_same_image_loads_once_allocation_limit_is_raised(
+        self, qtbot, tmp_path: Path
+    ) -> None:
+        """The actual fix: with the limit disabled (as gui_main.py does),
+        the same image that failed above now loads correctly."""
+        image_path = tmp_path / "large.png"
+        Image.fromarray(np.zeros((2000, 2000, 3), dtype=np.uint8)).save(image_path)
+
+        original_limit = QImageReader.allocationLimit()
+        QImageReader.setAllocationLimit(1)  # reproduce the failing baseline
+        QImageReader.setAllocationLimit(0)  # 0 = unlimited, matching gui_main.py
+        try:
+            view = ZoomableImageView(placeholder="No image yet")
+            qtbot.addWidget(view)
+            view.show_image(image_path)
+
+            assert view._item is not None
+        finally:
+            QImageReader.setAllocationLimit(original_limit)

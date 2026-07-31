@@ -31,3 +31,6 @@ data/after/flood_test.*
 
 gui_settings.json
 project_tree.txt
+# Sentinel-2 Rohdaten (zu groﬂ fuers Repo)
+data/after/sentinel2_scene.tif
+data/before/sentinel2_scene.tif

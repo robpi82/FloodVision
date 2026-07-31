@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.11-green)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-pink)
-![Tests](https://img.shields.io/badge/tests-312%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-314%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-success)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
@@ -275,7 +275,8 @@ The panel is implemented as a dedicated PySide6 dock widget and automatically up
 * Combined multi-band Sentinel-2 GeoTIFF writer tests
 * Round-trip tests confirming the combined GeoTIFF is readable by the unmodified existing GeoTIFF loader and spectral detector
 * Sentinel-2 band file import dialog tests (band-code detection, folder scanning, combine success/failure paths)
-* Complete regression test suite with 312 passing tests
+* Full-resolution preview image allocation limit tests
+* Complete regression test suite with 314 passing tests
 * End-to-end Sentinel-2 Before/After batch integration test
 * Productive spectral detector routing test
 * Georeferenced spectral flood mask export validation
@@ -357,7 +358,7 @@ python -m pytest -v
 Latest verified stable baseline:
 
 ```text
-312 passed, 53 warnings
+314 passed, 53 warnings
 ```
 
 ---
@@ -521,6 +522,7 @@ Current development focus:
 * Combined multi-band GeoTIFF writer for individually-supplied Sentinel-2 band files, producing a normal file droppable into `data/before`/`data/after` - done (backend)
 * GUI dialog to select individual Sentinel-2 band files or a folder and combine them into a Before/After GeoTIFF - done
 * Verified end-to-end against real Copernicus Data Space Ecosystem Sentinel-2 L2A data (full-resolution 10980 x 10980 px tiles), not just synthetic test fixtures - done
+* Fixed: full-resolution preview images (Before/After/Overlay/New Flood Mask/Spectral Index) silently failing to display for real-world tile sizes, due to Qt's default 256 MB decoded-image allocation limit - done
 * Sentinel-2 Level-2A `.SAFE` folder auto-discovery (detecting resolution subfolders and required bands automatically)
 * Multi-temporal flood monitoring
 
@@ -610,6 +612,7 @@ Planned development:
 * Combined multi-band GeoTIFF writer for individually-supplied Sentinel-2 band files - done (backend)
 * GUI dialog to select individual Sentinel-2 band files or a folder and combine them into a Before/After GeoTIFF - done
 * Verified end-to-end against real Copernicus Data Space Ecosystem Sentinel-2 L2A data - done
+* Fixed: full-resolution preview images not displaying due to Qt's default decoded-image allocation limit - done
 * Sentinel-2 Level-2A `.SAFE` folder auto-discovery
 * Multi-index flood classification
 * Multi-temporal flood monitoring

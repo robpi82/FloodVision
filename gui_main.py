@@ -22,14 +22,28 @@ import matplotlib
 
 matplotlib.use("Agg")
 
-from PySide6.QtWidgets import QApplication, QMessageBox  # noqa: E402
+from PySide6.QtGui import QImageReader
+from PySide6.QtWidgets import QApplication, QMessageBox
 
-from src.exceptions import FloodVisionError  # noqa: E402
+from src.exceptions import FloodVisionError
 
 
 def main() -> None:
     """Launch the FloodVision desktop application."""
     app = QApplication(sys.argv)
+
+    # Qt's default 256 MB decoded-image allocation limit exists to guard
+    # against maliciously crafted images ("decompression bombs"), but a
+    # single-band preview PNG of a full-resolution Sentinel-2 tile
+    # (10980 x 10980 px, ~345 MB decoded as RGB) is a completely
+    # legitimate file that exceeds it -- QPixmap then silently fails to
+    # load (isNull()) and every preview tab falls back to its
+    # placeholder, with no error anywhere in the log. All of this
+    # application's own preview images are trusted, locally-generated
+    # batch output, never untrusted input, so disabling the limit here
+    # is safe.
+    QImageReader.setAllocationLimit(0)
+
     try:
         # Imported here so that a broken config.yaml surfaces as a
         # friendly dialog instead of a bare traceback: importing these

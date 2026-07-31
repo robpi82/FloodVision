@@ -68,9 +68,14 @@ All notable changes to this project will be documented in this file.
 - The complete Sentinel-2 workflow (band import, resampling, spectral detection, false-colour visualization, georeferenced index export) confirmed end-to-end against real Copernicus Data Space Ecosystem Sentinel-2 L2A data, not just synthetic test fixtures: two full-resolution acquisitions (10980 x 10980 px each) of the same tile, imported via the new GUI dialog and run through a complete batch analysis without any code changes
 - Along the way, confirmed the import dialog's band-code detection and per-band resampling work correctly against real ESA filenames and native JPEG2000 (`.jp2`) band files, not only the GeoTIFF fixtures used in automated tests
 
+### Fixed
+
+- Preview images (Before/After/Overlay/New Flood Mask/Spectral Index) silently failing to display -- falling back to their placeholder with no error anywhere in the log -- for full-resolution real-world tiles. Root cause: Qt's default 256 MB decoded-image allocation limit, a safeguard against maliciously crafted "decompression bomb" images, rejecting this application's own legitimate, locally-generated batch output (a single-band preview PNG of a 10980 x 10980 px Sentinel-2 tile decodes to roughly 345 MB as RGB). `gui_main.py` now disables the limit at startup, since every image FloodVision ever loads is its own trusted output, never untrusted input. Found via the real-Copernicus-data verification above -- our synthetic test fixtures were always small enough to stay under the limit, so this had no automated test coverage before now
+- Automated tests reproducing the failure and its fix by temporarily lowering/raising the allocation limit against a smaller fixture, rather than committing a genuinely huge test image (`tests/test_image_view.py`)
+
 ### Improved
 
-- Expanded the complete regression test suite to 312 passing tests
+- Expanded the complete regression test suite to 314 passing tests
 
 ---
 
